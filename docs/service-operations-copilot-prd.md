@@ -22,7 +22,7 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 | Mobile framework | Expo SDK 55 + React Native 0.83.6 (SDK-pinned) + React 19.2 | Latest stable; Expo SDK 55 hard-pins RN 0.83.6 + react 19.2 (the PRD's earlier "RN 0.85+" target is not achievable on SDK 55) |
 | Mobile styling | NativeWind 5.0.0-preview.3 + Tailwind 4 + react-native-css 3.0.7 + lightningcss pinned to 1.30.1 | RN-CSS 3.0.7 fails to deserialize lightningcss ≥ 1.31; pin via root `overrides` |
 | Web styling | Tailwind 4 + `@tailwindcss/vite` | Shared theme tokens with mobile via CSS-first config |
-| UI design | Motion parallax glass on mobile; static glass on web | See `docs/motion-parallax-glass.md` |
+| UI design | Liquid Glass on mobile (tilt-reactive edge lighting); static glass on web | See `docs/liquid-glass.md` |
 | State on mobile | Convex queries + react-hook-form + Context (no Zustand) | Convex eliminates global store need |
 | Forms | react-hook-form + zod resolver | Schemas live in `packages/shared` |
 | Code quality | Biome 2.4.14 (qd-editor base) + lefthook pre-commit | Strict rules need automated gating |
@@ -168,26 +168,22 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 
 ---
 
-## Phase 2 — Mobile Parallax Glass Component Library
+## Phase 2 — Mobile Liquid Glass Component Library
 
-**Demo at end of phase:** Welcome, login, register, and all three role homes render with parallax glass cards that respond to device tilt on iOS. Android uses lower-intensity defaults with faux-glass fallback. Reduce-motion accessibility setting disables motion. Inputs use the weaker shell variant and freeze on focus. See `docs/motion-parallax-glass.md` for the full spec.
+**Demo at end of phase:** Welcome, login, register, and all three role homes render with Liquid Glass cards whose edges brighten as the device tilts on iOS. Android uses lower-intensity defaults with faux-glass fallback. Reduce-motion accessibility setting holds borders at rest opacities. Inputs use the `'input'` variant and freeze on focus. See `docs/liquid-glass.md` for the full spec.
 
 ### `apps/mobile`
 
-- [ ] Install `expo-blur@latest`, `expo-sensors@latest` (for `DeviceMotion` if needed as fallback)
-- [ ] Create `src/components/parallax/useParallaxMotion.ts` per spec (gyroscope-based, Reanimated worklet, accessibility-aware, freeze + disabled props)
-- [ ] Create `src/components/parallax/GlassSurface.tsx` (BlurView when supported; faux-glass fallback)
-- [ ] Create `src/components/parallax/ParallaxCard.tsx` (full motion: translate ±6, rotate ±2°)
-- [ ] Create `src/components/parallax/ParallaxInputShell.tsx` (reduced motion + `freezeOnFocus: true` default)
-- [ ] Create `src/components/parallax/SharedMotionProvider.tsx` (single sensor source, multiple animated derivations)
-- [ ] Create `src/components/parallax/PARALLAX_DEFAULTS.ts` per spec
-- [ ] Replace welcome/login/register screens to use `ParallaxCard` + `ParallaxInputShell`
-- [ ] Replace each role home screen header with `ParallaxCard`
-- [ ] Verify on physical iPhone: motion is subtle, smooth, no jitter at rest, returns to neutral when phone is flat
-- [ ] Verify on physical Android (mid-range): lower intensity, faux-glass fallback if blur is poor, no frame drops
-- [ ] Verify reduce motion (Settings → Accessibility → Reduce Motion) disables sensor-driven motion entirely
-- [ ] Verify focused input freezes parallax and text stays readable while typing
-- [ ] No more than 1–2 parallax surfaces per screen on dense lists (use static glass for list items)
+- [x] Install `expo-blur` and `expo-sensors`
+- [x] Create `src/components/parallax/useParallaxMotion.ts` — Reanimated rotation sensor → animated per-side border colors; accessibility-aware; `disabled` / `freeze` priority chain
+- [x] Create `src/components/parallax/GlassSurface.tsx` — single component with `variant: 'card' | 'input'`; `BlurView` (`StyleSheet.absoluteFill`) behind content; faux-glass fallback via `blurEnabled={false}`
+- [x] Wire welcome/login/register screens with `<GlassSurface>` (card) and `<GlassSurface variant="input">` for each `TextInput`
+- [x] Wire each role home/profile placeholder with `<GlassSurface>`
+- [x] Verify on physical iPhone: tilt response is subtle, smooth, no jitter at rest, returns to neutral when flat
+- [x] Verify on physical Android (mid-range): lower intensity; pass `blurEnabled={false}` if blur is too expensive
+- [x] Verify Reduce Motion (Settings → Accessibility → Reduce Motion) holds borders at baseline
+- [x] Verify focused input freezes its tilt response and text stays readable while typing
+- [x] At most 1–2 Liquid Glass surfaces visible per screen — list rows use static glass
 
 ---
 
