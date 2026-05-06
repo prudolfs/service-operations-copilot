@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link, router } from 'expo-router'
+import { Link } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import {
@@ -47,9 +47,9 @@ export default function RegisterScreen() {
       })
       if (error) {
         Alert.alert('Registration failed', error.message ?? 'Please try again')
-        return
       }
-      router.replace('/')
+      // No manual navigation — `(auth)/_layout.tsx` redirects to `/` once the
+      // session lands; manual replace here races that and produces a flash.
     } catch (err) {
       Alert.alert('Registration failed', (err as Error).message)
     } finally {
@@ -194,7 +194,7 @@ export default function RegisterScreen() {
                 Already registered?{' '}
               </Text>
               <Link
-                href="/login"
+                href="/welcome"
                 className="font-semibold text-brand-300 text-sm"
               >
                 Sign in

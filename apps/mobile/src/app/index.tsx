@@ -8,7 +8,14 @@ export default function Index() {
 
   if (isLoading) return <BootSplash />
   if (!user) return <Redirect href="/(auth)/welcome" />
-  return <RoleRedirect />
+  // RoleRedirect renders null while ensureAppUser is in flight; show the
+  // splash underneath so the Stack content never goes blank between routes.
+  return (
+    <>
+      <BootSplash />
+      <RoleRedirect />
+    </>
+  )
 }
 
 function BootSplash() {

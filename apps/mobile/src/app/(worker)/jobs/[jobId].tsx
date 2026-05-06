@@ -4,6 +4,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { router, Stack, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
+import { ChatLinkCard } from '@/components/chat'
 import { GlassSurface } from '@/components/parallax'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
@@ -91,6 +92,8 @@ export default function WorkerJobDetail() {
             ) : null}
           </View>
         </GlassSurface>
+
+        <ChatLinkCard serviceRequestId={id} basePath="/(worker)/messages" />
 
         <View className="mt-6 gap-3">
           {status === 'OPEN' && (

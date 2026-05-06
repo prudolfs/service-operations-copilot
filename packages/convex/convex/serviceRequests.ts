@@ -6,6 +6,7 @@ import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
+import { ensureRoomForRequest } from './chat'
 import { requireAppUser } from './users'
 
 const StatusValidator = v.union(
@@ -72,6 +73,7 @@ export const acceptServiceRequestBy = async (
     assignedWorkerId: worker._id,
     updatedAt: Date.now(),
   })
+  await ensureRoomForRequest(ctx, requestId)
   const updated = await ctx.db.get(requestId)
   if (!updated) throw new Error('Request vanished after patch')
   return updated
@@ -165,6 +167,7 @@ export const assignWorkerByManager = async (
     status: 'ASSIGNED',
     updatedAt: Date.now(),
   })
+  await ensureRoomForRequest(ctx, requestId)
   const updated = await ctx.db.get(requestId)
   if (!updated) throw new Error('Request vanished after patch')
   return updated

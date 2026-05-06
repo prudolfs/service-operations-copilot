@@ -17,6 +17,9 @@ export const authComponent = createClient<DataModel>(components.betterAuth)
  */
 export const createAuth = (ctx: GenericCtx<DataModel>) =>
   betterAuth({
+    // `CONVEX_SITE_URL` is injected by Convex into the function runtime; the
+    // `convex` plugin warns when this is missing, so set it explicitly.
+    baseURL: process.env.CONVEX_SITE_URL,
     trustedOrigins: ['serviceops://'],
     database: authComponent.adapter(ctx),
     emailAndPassword: {

@@ -232,28 +232,28 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 
 ### `packages/convex`
 
-- [ ] Add `chatRooms` table per plan §11 (serviceRequestId, status, lastMessageText, lastMessageTime, createdAt, updatedAt; index `by_service_request`)
-- [ ] Add `chatMessages` table (chatRoomId, senderId, text, createdAt; compound index `by_chat_room` on `[chatRoomId, createdAt]`)
-- [ ] Mutation `chat.createRoomForRequest` (internal; called by `serviceRequests.accept`)
-- [ ] Update `serviceRequests.accept` to invoke `chat.createRoomForRequest`
-- [ ] Mutation `chat.sendMessage` (caller must be client owner / assigned worker / manager; updates `lastMessage*` on room)
-- [ ] Query `chat.listForUser` (returns rooms where caller is participant or manager)
-- [ ] Query `chat.getMessages` (paginated by `_creationTime`; authorization same as listForUser; cap 100 per page)
-- [ ] Query `chat.getRoomForRequest`
-- [ ] convex-test: client cannot read messages from a request they don't own; manager can read any room
+- [x] Add `chatRooms` table per plan §11 (serviceRequestId, status, lastMessageText, lastMessageTime, createdAt, updatedAt; index `by_service_request`)
+- [x] Add `chatMessages` table (chatRoomId, senderId, text, createdAt; compound index `by_chat_room` on `[chatRoomId, createdAt]`)
+- [x] Mutation `chat.createRoomForRequest` (internal; called by `serviceRequests.accept`)
+- [x] Update `serviceRequests.accept` to invoke `chat.createRoomForRequest`
+- [x] Mutation `chat.sendMessage` (caller must be client owner / assigned worker / manager; updates `lastMessage*` on room)
+- [x] Query `chat.listForUser` (returns rooms where caller is participant or manager)
+- [x] Query `chat.getMessages` (paginated by `_creationTime`; authorization same as listForUser; cap 100 per page)
+- [x] Query `chat.getRoomForRequest`
+- [x] convex-test: client cannot read messages from a request they don't own; manager can read any room
 
 ### `apps/mobile`
 
-- [ ] Client: `src/app/(client)/messages/index.tsx` — list of chats sorted by `lastMessageTime`
-- [ ] Client: `src/app/(client)/messages/[chatRoomId].tsx` — message list (FlatList inverted) + composer
-- [ ] Worker: `src/app/(worker)/messages/index.tsx` and `[chatRoomId].tsx` — same shape
-- [ ] Manager: `src/app/(manager)/messages/index.tsx` — sees all rooms; `[chatRoomId].tsx` opens any
-- [ ] Add link from request detail → chat room (if exists)
-- [ ] Compose on Enter / Send button
-- [ ] Optimistic message append on send
-- [ ] Auto-scroll to bottom on new message; "scroll to bottom" pill when not at bottom
-- [ ] Sender bubble styling: own messages right-aligned, others left-aligned
-- [ ] Test realtime: two devices, send from one, message arrives on other within ~200ms
+- [x] Client: `src/app/(client)/messages/index.tsx` — list of chats sorted by `lastMessageTime`
+- [x] Client: `src/app/(client)/messages/[chatRoomId].tsx` — message list (FlatList inverted) + composer
+- [x] Worker: `src/app/(worker)/messages/index.tsx` and `[chatRoomId].tsx` — same shape
+- [x] Manager: `src/app/(manager)/messages/index.tsx` — sees all rooms; `[chatRoomId].tsx` opens any
+- [x] Add link from request detail → chat room (if exists)
+- [x] Compose on Enter / Send button
+- [x] Optimistic message append on send
+- [x] Auto-scroll to bottom on new message; "scroll to bottom" pill when not at bottom
+- [x] Sender bubble styling: own messages right-aligned, others left-aligned
+- [x] Test realtime: two devices, send from one, message arrives on other within ~200ms
 
 ---
 

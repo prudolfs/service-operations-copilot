@@ -24,7 +24,12 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#0a0d14' },
+          }}
+        />
         <StatusBar style="light" />
       </ConvexBetterAuthProvider>
     </SafeAreaProvider>
