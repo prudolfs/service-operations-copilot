@@ -19,8 +19,8 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 | AI runtime | Convex actions + Vercel AI SDK (`ai` package) | Same `generateObject` pattern as seniory, runs in Convex |
 | AI streaming | `@convex-dev/agent` over websocket | Reactive token streaming; no SSE plumbing |
 | Audio transcription | Groq Whisper (`whisper-large-v3`) via fetch | Free tier covers dev; copy seniory's pattern |
-| Mobile framework | Expo SDK 55 + React Native 0.85+ | Latest stable |
-| Mobile styling | NativeWind 5.0.0-preview.3 + Tailwind 4 + react-native-css 3.0.7 | Newer than seniory; stable RN-CSS line |
+| Mobile framework | Expo SDK 55 + React Native 0.83.6 (SDK-pinned) + React 19.2 | Latest stable; Expo SDK 55 hard-pins RN 0.83.6 + react 19.2 (the PRD's earlier "RN 0.85+" target is not achievable on SDK 55) |
+| Mobile styling | NativeWind 5.0.0-preview.3 + Tailwind 4 + react-native-css 3.0.7 + lightningcss pinned to 1.30.1 | RN-CSS 3.0.7 fails to deserialize lightningcss ≥ 1.31; pin via root `overrides` |
 | Web styling | Tailwind 4 + `@tailwindcss/vite` | Shared theme tokens with mobile via CSS-first config |
 | UI design | Motion parallax glass on mobile; static glass on web | See `docs/motion-parallax-glass.md` |
 | State on mobile | Convex queries + react-hook-form + Context (no Zustand) | Convex eliminates global store need |
@@ -53,80 +53,80 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 
 ### Repo root
 
-- [ ] Initialize `package.json` with bun workspaces (`apps/*`, `packages/*`), `packageManager: bun@1.x`
-- [ ] Add `tsconfig.base.json` with `strict: true`, `moduleResolution: "bundler"`, path aliases
-- [ ] Add `biome.json` (qd-editor base + adaptations from PRD §Locked Decisions); pin `@biomejs/biome@^2.4.14`
-- [ ] Add `lefthook.yml` with pre-commit `biome check --write` + `bun run typecheck`
-- [ ] Add `bunfig.toml` for workspace install behavior
-- [ ] Add root `.gitignore` (covers `node_modules`, `dist`, `.expo`, `.vercel`, `.tanstack`, `_generated`, `ios`, `android`, `.env*`)
-- [ ] Add `README.md` (one-page setup + run instructions)
-- [ ] Add root scripts: `dev`, `dev:mobile`, `dev:web`, `dev:convex`, `check`, `check:fix`, `typecheck`
+- [x] Initialize `package.json` with bun workspaces (`apps/*`, `packages/*`), `packageManager: bun@1.x`
+- [x] Add `tsconfig.base.json` with `strict: true`, `moduleResolution: "bundler"`, path aliases
+- [x] Add `biome.json` (qd-editor base + adaptations from PRD §Locked Decisions); pin `@biomejs/biome@^2.4.14`
+- [x] Add `lefthook.yml` with pre-commit `biome check --write` + `bun run typecheck`
+- [x] Add `bunfig.toml` for workspace install behavior
+- [x] Add root `.gitignore` (covers `node_modules`, `dist`, `.expo`, `.vercel`, `.tanstack`, `_generated`, `ios`, `android`, `.env*`)
+- [x] Add `README.md` (one-page setup + run instructions)
+- [x] Add root scripts: `dev`, `dev:mobile`, `dev:web`, `dev:convex`, `check`, `check:fix`, `typecheck`
 
 ### `packages/shared`
 
-- [ ] Create package with `name: "@service-ops/shared"`, `type: "module"`, `main/types: "./src/index.ts"`
-- [ ] Add `zod@^4` dependency
-- [ ] Add `src/index.ts` barrel
-- [ ] Add `src/roles.ts` with `Role` type, `isClient`, `isWorker`, `isManager`, `getHomeRouteForRole` helpers
-- [ ] Add `src/schemas/serviceRequest.ts` (zod for create/update payloads, status enum)
-- [ ] Add `src/schemas/chatMessage.ts` (zod for send-message payload)
-- [ ] Add `src/schemas/voiceIntent.ts` (zod for AI intent envelope used by Phase 6; defined now for shared types)
-- [ ] Add `src/styles/theme.css` — Tailwind 4 `@theme` with design tokens (colors, radii, spacing, glass color stops)
-- [ ] Add `src/styles/glass.css` — Tailwind 4 `@utility .glass-card`, `.glass-input`, `.glass-surface` (works on web; mobile compiles via NativeWind)
-- [ ] Add `src/index.test.ts` smoke test; add `vitest` devDep
-- [ ] Add `package.json` scripts: `test`, `typecheck`
+- [x] Create package with `name: "@service-ops/shared"`, `type: "module"`, `main/types: "./src/index.ts"`
+- [x] Add `zod@^4` dependency
+- [x] Add `src/index.ts` barrel
+- [x] Add `src/roles.ts` with `Role` type, `isClient`, `isWorker`, `isManager`, `getHomeRouteForRole` helpers
+- [x] Add `src/schemas/serviceRequest.ts` (zod for create/update payloads, status enum)
+- [x] Add `src/schemas/chatMessage.ts` (zod for send-message payload)
+- [x] Add `src/schemas/voiceIntent.ts` (zod for AI intent envelope used by Phase 6; defined now for shared types)
+- [x] Add `src/styles/theme.css` — Tailwind 4 `@theme` with design tokens (colors, radii, spacing, glass color stops)
+- [x] Add `src/styles/glass.css` — Tailwind 4 `@utility .glass-card`, `.glass-input`, `.glass-surface` (works on web; mobile compiles via NativeWind)
+- [x] Add `src/index.test.ts` smoke test; add `vitest` devDep
+- [x] Add `package.json` scripts: `test`, `typecheck`
 
 ### `packages/convex`
 
-- [ ] Create package with `name: "@service-ops/convex"`, `type: "module"`
-- [ ] Add `convex@latest`, `@convex-dev/better-auth`, `@convex-dev/agent` dependencies
-- [ ] Run `bunx convex dev --configure new` → creates `service-ops-copilot` project, generates `convex/_generated/`
-- [ ] Add `convex/schema.ts` with empty placeholder export (real tables come in later phases)
-- [ ] Add `convex/auth.config.ts` for Better Auth (handlers wired in Phase 1)
-- [ ] Add package exports: `./api`, `./server`, `./dataModel` (matches seniory shape)
-- [ ] Add `convex.json` with `functions: "./convex/"` and external packages list
-- [ ] Add `convex-test` devDep, scaffold `convex/test-helpers.ts`
-- [ ] Add `package.json` scripts: `dev` (= `convex dev`), `deploy` (= `convex deploy`), `test`
+- [x] Create package with `name: "@service-ops/convex"`, `type: "module"`
+- [x] Add `convex@latest`, `@convex-dev/better-auth`, `@convex-dev/agent` dependencies
+- [x] Run `bunx convex dev --configure new` → creates `service-ops-copilot` project, generates `convex/_generated/`
+- [x] Add `convex/schema.ts` with empty placeholder export (real tables come in later phases)
+- [x] Add `convex/auth.config.ts` for Better Auth (handlers wired in Phase 1)
+- [x] Add package exports: `./api`, `./server`, `./dataModel` (matches seniory shape)
+- [x] Add `convex.json` with `functions: "./convex/"` and external packages list
+- [x] Add `convex-test` devDep, scaffold `convex/test-helpers.ts`
+- [x] Add `package.json` scripts: `dev` (= `convex dev`), `deploy` (= `convex deploy`), `test`
 
 ### `apps/mobile`
 
-- [ ] Bootstrap with `bunx create-expo-app@latest --template blank-typescript`, set `name: "@service-ops/mobile"`
-- [ ] Set `app.json`: `name: "Service Ops"`, `slug: "service-ops"`, `scheme: "serviceops"`, `ios.bundleIdentifier: "com.serviceops.app"`, `android.package: "com.serviceops.app"`
-- [ ] Pin Expo to `~55.0.23`; run `bunx expo install` for SDK-aligned RN/react versions
-- [ ] Install `expo-router@latest`; set `main: "expo-router/entry"` in package.json
-- [ ] Install `nativewind@5.0.0-preview.3`, `react-native-css@^3.0.7`, `tailwindcss@^4.1.18`, `@tailwindcss/postcss@^4.1.18`
-- [ ] Add `resolutions: { "lightningcss": "^1.30.1" }` to package.json
-- [ ] Configure `metro.config.js` for NativeWind 5 + react-native-css
-- [ ] Configure `babel.config.js` with NativeWind babel plugin
-- [ ] Add `nativewind-env.d.ts`, `global.css` importing `@service-ops/shared/styles/theme.css` + `glass.css`
-- [ ] Install `@service-ops/convex` and `@service-ops/shared` as workspace deps
-- [ ] Install `convex@latest`, `@convex-dev/better-auth/react-native`, `react-hook-form@^7`, `@hookform/resolvers@^5`, `zod@^4`, `clsx`, `tailwind-merge`, `date-fns`
-- [ ] Install Reanimated + Worklets pair (versions pinned by `expo install`); register Reanimated babel plugin
-- [ ] Set `EXPO_ROUTER_APP_ROOT=src/app` in scripts (matches seniory pattern)
-- [ ] Create `src/app/_layout.tsx` root layout with ConvexProvider + Better Auth provider stubs
-- [ ] Create `src/app/index.tsx` placeholder welcome screen rendering a static glass card
-- [ ] Add `eas.json` skeleton with `development`, `preview`, `production` profiles (config only; builds in Phase 7+)
-- [ ] Add `package.json` scripts: `start`, `ios`, `android`, `lint`, `check`, `typecheck`
+- [x] Bootstrap with `bunx create-expo-app@latest --template blank-typescript`, set `name: "@service-ops/mobile"`
+- [x] Set `app.json`: `name: "Service Ops"`, `slug: "service-ops"`, `scheme: "serviceops"`, `ios.bundleIdentifier: "com.serviceops.app"`, `android.package: "com.serviceops.app"`
+- [x] Pin Expo to `~55.0.23`; run `bunx expo install` for SDK-aligned RN/react versions
+- [x] Install `expo-router@latest`; set `main: "expo-router/entry"` in package.json
+- [x] Install `nativewind@5.0.0-preview.3`, `react-native-css@^3.0.7`, `tailwindcss@^4.1.18`, `@tailwindcss/postcss@^4.1.18`
+- [x] Add `resolutions: { "lightningcss": "^1.30.1" }` to package.json
+- [x] Configure `metro.config.js` for NativeWind 5 + react-native-css
+- [x] Configure `babel.config.js` with NativeWind babel plugin
+- [x] Add `nativewind-env.d.ts`, `global.css` importing `@service-ops/shared/styles/theme.css` + `glass.css`
+- [x] Install `@service-ops/convex` and `@service-ops/shared` as workspace deps
+- [x] Install `convex@latest`, `@convex-dev/better-auth/react-native`, `react-hook-form@^7`, `@hookform/resolvers@^5`, `zod@^4`, `clsx`, `tailwind-merge`, `date-fns`
+- [x] Install Reanimated + Worklets pair (versions pinned by `expo install`); register Reanimated babel plugin
+- [x] Set `EXPO_ROUTER_APP_ROOT=src/app` in scripts (matches seniory pattern)
+- [x] Create `src/app/_layout.tsx` root layout with ConvexProvider + Better Auth provider stubs
+- [x] Create `src/app/index.tsx` placeholder welcome screen rendering a static glass card
+- [x] Add `eas.json` skeleton with `development`, `preview`, `production` profiles (config only; builds in Phase 7+)
+- [x] Add `package.json` scripts: `start`, `ios`, `android`, `lint`, `check`, `typecheck`
 
 ### `apps/web` (stub only)
 
-- [ ] Bootstrap with `bunx create-tsrouter-app@latest` or copy seniory `apps/web/` structure
-- [ ] Set `name: "@service-ops/web"`
-- [ ] Pin TanStack Start + Vite + Tailwind 4 versions matching seniory
-- [ ] Add `vite.config.ts` with `nitro()`, `tanstackStart()`, `viteReact()`, `tailwindcss()`, `viteTsConfigPaths()` (copy seniory)
-- [ ] Add empty `src/routes/__root.tsx` and `src/routes/index.tsx`
-- [ ] Add `src/styles.css` importing `@service-ops/shared/styles/theme.css` + `glass.css`
-- [ ] Add `vercel.json` (`{ "bunVersion": "1.x" }`)
-- [ ] Verify `bun run dev` starts without errors — feature work deferred to Phase 7
+- [x] Bootstrap with `bunx create-tsrouter-app@latest` or copy seniory `apps/web/` structure
+- [x] Set `name: "@service-ops/web"`
+- [x] Pin TanStack Start + Vite + Tailwind 4 versions matching seniory
+- [x] Add `vite.config.ts` with `nitro()`, `tanstackStart()`, `viteReact()`, `tailwindcss()`, `viteTsConfigPaths()` (copy seniory)
+- [x] Add empty `src/routes/__root.tsx` and `src/routes/index.tsx`
+- [x] Add `src/styles.css` importing `@service-ops/shared/styles/theme.css` + `glass.css`
+- [x] Add `vercel.json` (`{ "bunVersion": "1.x" }`)
+- [x] Verify `bun run dev` starts without errors — feature work deferred to Phase 7
 
 ### Tooling validation
 
-- [ ] `bun install` at repo root resolves cleanly with no peer warnings
-- [ ] `bun run check` (biome) passes with zero issues
-- [ ] `bun run typecheck` passes across all packages
-- [ ] `bun run dev:mobile` opens Expo on iOS simulator and shows the welcome stub
-- [ ] `bun run dev:web` starts the web dev server (just to confirm scaffold)
-- [ ] A test commit confirms lefthook runs biome + typecheck before allowing the commit
+- [x] `bun install` at repo root resolves cleanly with no peer warnings
+- [x] `bun run check` (biome) passes with zero issues
+- [x] `bun run typecheck` passes across all packages
+- [x] `bun run dev:mobile` opens Expo on iOS simulator and shows the welcome stub
+- [x] `bun run dev:web` starts the web dev server (just to confirm scaffold)
+- [x] A test commit confirms lefthook runs biome + typecheck before allowing the commit
 
 ---
 

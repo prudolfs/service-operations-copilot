@@ -1,0 +1,11 @@
+.vite/
+.tanstack/
+.vercel/
+.nitro/
+.output/
+dist/
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log

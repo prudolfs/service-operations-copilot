@@ -1,0 +1,38 @@
+{
+  "name": "@service-ops/convex",
+  "private": true,
+  "type": "module",
+  "main": "./convex/_generated/api.js",
+  "exports": {
+    "./api": {
+      "types": "./convex/_generated/api.d.ts",
+      "default": "./convex/_generated/api.js"
+    },
+    "./server": {
+      "types": "./convex/_generated/server.d.ts",
+      "default": "./convex/_generated/server.js"
+    },
+    "./dataModel": "./convex/_generated/dataModel.d.ts"
+  },
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc -p convex/tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@convex-dev/agent": "^0.1.0",
+    "@convex-dev/better-auth": "^0.7.0",
+    "convex": "^1.32.0"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^4.0.4",
+    "@types/bun": "latest",
+    "convex-test": "^0.0.40",
+    "vitest": "^4.1.5"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0",
+    "typescript": "^5"
+  }
+}

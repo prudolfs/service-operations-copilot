@@ -1,0 +1,7 @@
+[install]
+registry = "https://registry.npmjs.org/"
+exact = false
+linker = "hoisted"
+
+[install.cache]
+disable = false

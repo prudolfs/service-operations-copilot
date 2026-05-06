@@ -1,0 +1,39 @@
+{
+  "name": "@service-ops/root",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "preinstall": "bunx only-allow bun",
+    "prepare": "lefthook install",
+    "dev:mobile": "bun --cwd=apps/mobile run start",
+    "dev:web": "bun --cwd=apps/web run dev",
+    "dev:convex": "bun --cwd=packages/convex run dev",
+    "dev": "bun run dev:mobile",
+    "check": "biome check ./apps ./packages",
+    "check:fix": "biome check --write ./apps ./packages",
+    "format": "biome format --write ./apps ./packages",
+    "lint": "biome lint ./apps ./packages",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@types/bun": "latest",
+    "lefthook": "^2.1.6",
+    "only-allow": "^1.2.1",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "overrides": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "lightningcss": "1.30.1"
+  }
+}

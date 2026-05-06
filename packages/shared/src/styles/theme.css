@@ -1,0 +1,59 @@
+/**
+ * Service Operations Copilot — design tokens.
+ *
+ * Tailwind 4 CSS-first theme. Imported by both `apps/web/src/styles.css`
+ * and `apps/mobile/global.css` so that web and mobile share one palette.
+ */
+@theme {
+  /* Brand */
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9eaff;
+  --color-brand-200: #b6d4ff;
+  --color-brand-300: #87b6ff;
+  --color-brand-400: #5790ff;
+  --color-brand-500: #2f6cff;
+  --color-brand-600: #1f50e6;
+  --color-brand-700: #183fb4;
+  --color-brand-800: #14328c;
+  --color-brand-900: #0f2566;
+
+  /* Surfaces (dark-first) */
+  --color-surface-0: #0a0d14;
+  --color-surface-1: #11151f;
+  --color-surface-2: #181d2a;
+  --color-surface-3: #232a3b;
+  --color-surface-text: #e7ebf3;
+  --color-surface-text-muted: #9aa3b6;
+
+  /* Status */
+  --color-status-open: #3b82f6;
+  --color-status-assigned: #8b5cf6;
+  --color-status-progress: #f59e0b;
+  --color-status-completed: #10b981;
+  --color-status-cancelled: #6b7280;
+
+  /* Glass color stops — used by glass.css utilities */
+  --glass-tint-strong: rgba(255, 255, 255, 0.16);
+  --glass-tint-medium: rgba(255, 255, 255, 0.1);
+  --glass-tint-weak: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.32);
+  --glass-shadow: rgba(8, 12, 22, 0.45);
+
+  /* Radii */
+  --radius-card: 24px;
+  --radius-input: 16px;
+  --radius-pill: 999px;
+
+  /* Spacing scale extensions (Tailwind 4 already has 0..96) */
+  --spacing-card: 1.25rem;
+  --spacing-screen: 1.5rem;
+}
+
+/**
+ * Tailwind 4's default unitless line-heights (e.g. `calc(1 / 0.75)`) are what
+ * react-native-css 3.x's lineHeight resolver expects — it multiplies them by
+ * the element's font-size. An `em` unit inside the calc gets resolved BEFORE
+ * the lineHeight resolver runs, then multiplied by em again, producing line
+ * boxes 5–10× too tall in RN. Leave the defaults alone.
+ */
