@@ -1,24 +1,29 @@
 import '../../global.css'
-import { ConvexProvider, ConvexReactClient } from 'convex/react'
+import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
+import { ConvexReactClient } from 'convex/react'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { StrictMode } from 'react'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { authClient } from '@/lib/auth-client'
 
-const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL
-
-const convex = convexUrl
-  ? new ConvexReactClient(convexUrl)
-  : (null as unknown as ConvexReactClient)
+const convex = new ConvexReactClient(
+  process.env.EXPO_PUBLIC_CONVEX_URL as string,
+  {
+    expectAuth: true,
+    unsavedChangesWarning: false,
+  },
+)
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <ConvexProvider client={convex}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-        </Stack>
-        <StatusBar style="light" />
-      </ConvexProvider>
-    </SafeAreaProvider>
+    <StrictMode>
+      <SafeAreaProvider>
+        <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+          <Stack screenOptions={{ headerShown: false }} />
+          <StatusBar style="light" />
+        </ConvexBetterAuthProvider>
+      </SafeAreaProvider>
+    </StrictMode>
   )
 }

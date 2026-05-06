@@ -1,21 +1,22 @@
+import { Redirect } from 'expo-router'
 import { Text, View } from 'react-native'
+import { RoleRedirect } from '@/auth/RoleRedirect'
+import { useAuth } from '@/auth/useAuth'
 
-export default function WelcomeScreen() {
+export default function Index() {
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) return <BootSplash />
+  if (!user) return <Redirect href="/(auth)/welcome" />
+  return <RoleRedirect />
+}
+
+function BootSplash() {
   return (
-    <View className="flex-1 bg-surface-0 pt-safe pb-safe">
-      <View className="flex-1 items-stretch justify-center px-6">
-        <View className="glass-card p-8">
-          <Text className="text-brand-300 text-sm uppercase tracking-[0.32em]">
-            Service Ops
-          </Text>
-          <Text className="mt-4 font-black text-4xl text-surface-text">
-            Welcome
-          </Text>
-          <Text className="mt-3 text-base text-surface-text-muted">
-            Phase 0 stub. Auth, role routing, and live features land in Phase 1.
-          </Text>
-        </View>
-      </View>
+    <View className="flex-1 items-center justify-center bg-surface-0">
+      <Text className="text-brand-300 text-sm uppercase tracking-[0.32em]">
+        Service Ops
+      </Text>
     </View>
   )
 }
