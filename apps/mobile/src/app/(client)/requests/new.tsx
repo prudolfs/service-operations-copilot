@@ -6,7 +6,7 @@ import {
   type ServiceType,
 } from '@service-ops/shared'
 import { useMutation } from 'convex/react'
-import { router, Stack } from 'expo-router'
+import { router, Stack, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import {
@@ -24,10 +24,23 @@ import { SERVICE_TYPE_OPTIONS } from '@/lib/format'
 
 type FocusKey = 'date' | 'time' | 'notes' | null
 
+const isServiceType = (value: string | undefined): value is ServiceType =>
+  value === 'cleaning' ||
+  value === 'maintenance' ||
+  value === 'delivery' ||
+  value === 'repair' ||
+  value === 'other'
+
 export default function NewClientRequest() {
   const [submitting, setSubmitting] = useState(false)
   const [focused, setFocused] = useState<FocusKey>(null)
   const createRequest = useMutation(api.serviceRequests.create)
+  const params = useLocalSearchParams<{
+    serviceType?: string
+    date?: string
+    time?: string
+    notes?: string
+  }>()
 
   const {
     control,
@@ -36,10 +49,12 @@ export default function NewClientRequest() {
   } = useForm<CreateServiceRequestInput>({
     resolver: zodResolver(CreateServiceRequestSchema),
     defaultValues: {
-      serviceType: 'cleaning',
-      date: '',
-      time: '',
-      notes: '',
+      serviceType: isServiceType(params.serviceType)
+        ? params.serviceType
+        : 'cleaning',
+      date: params.date ?? '',
+      time: params.time ?? '',
+      notes: params.notes ?? '',
     },
   })
 

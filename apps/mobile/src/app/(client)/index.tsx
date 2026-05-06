@@ -2,13 +2,17 @@ import { api } from '@service-ops/convex/api'
 import { useQuery } from 'convex/react'
 import { Link, router } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { PageLoader } from '@/components/PageLoader'
 import { GlassSurface } from '@/components/parallax'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
 
 export default function ClientHome() {
   const requests = useQuery(api.serviceRequests.listMyRequests)
-  const recent = (requests ?? []).slice(0, 3)
+
+  if (requests === undefined) return <PageLoader />
+
+  const recent = requests.slice(0, 3)
 
   return (
     <View className="flex-1 bg-surface-0 pt-safe">
@@ -47,7 +51,7 @@ export default function ClientHome() {
           </Text>
           {recent.length === 0 ? (
             <Text className="mt-3 text-base text-surface-text-muted">
-              {requests === undefined ? 'Loading…' : 'No requests yet.'}
+              No requests yet.
             </Text>
           ) : (
             <View className="mt-3 gap-3">

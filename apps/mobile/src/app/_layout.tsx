@@ -28,6 +28,9 @@ export default function RootLayout() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#0a0d14' },
+            // `fade` makes the welcome → splash → role-home hop look like a
+            // single dissolve instead of three slide animations stacked.
+            animation: 'fade',
           }}
         />
         <StatusBar style="light" />

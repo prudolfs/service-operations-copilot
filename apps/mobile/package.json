@@ -22,6 +22,7 @@
     "convex": "^1.32.0",
     "date-fns": "^4.1.0",
     "expo": "~55.0.23",
+    "expo-audio": "~55.0.14",
     "expo-blur": "~55.0.14",
     "expo-constants": "~55.0.16",
     "expo-linking": "~55.0.15",

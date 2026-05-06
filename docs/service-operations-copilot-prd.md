@@ -294,44 +294,44 @@ AI never silently submits, sends, or assigns. User confirms every action.
 
 ### `packages/convex`
 
-- [ ] Install `ai@latest` (Vercel AI SDK), and provider SDKs as needed (`@ai-sdk/openai`, `@ai-sdk/anthropic`)
-- [ ] Add Convex env vars: `GROQ_API_KEY`, `AI_GATEWAY_API_KEY` (or direct provider keys: `ANTHROPIC_API_KEY` / `OPENAI_API_KEY`)
-- [ ] Configure `@convex-dev/agent` component (for streaming summary)
-- [ ] Add `convex/ai/transcribe.ts` action: takes Convex storageId, fetches blob, POSTs to Groq Whisper, returns text
-- [ ] Add `convex/ai/intents.ts` with shared zod schemas mirroring seniory's `mergedIntentSchema` adapted for service-ops:
+- [x] Install `ai@latest` (Vercel AI SDK), and provider SDKs as needed (`@ai-sdk/openai`, `@ai-sdk/anthropic`)
+- [x] Add Convex env vars: `GROQ_API_KEY`, `AI_GATEWAY_API_KEY` (or direct provider keys: `ANTHROPIC_API_KEY` / `OPENAI_API_KEY`)
+- [x] Configure `@convex-dev/agent` component (for streaming summary)
+- [x] Add `convex/ai/transcribe.ts` action: takes Convex storageId, fetches blob, POSTs to Groq Whisper, returns text
+- [x] Add `convex/ai/intents.ts` with shared zod schemas mirroring seniory's `mergedIntentSchema` adapted for service-ops:
   - intent: `create_service_request | draft_message | summarize_request | unknown`
   - service-request fields: serviceType, date, time, notes
   - draft-message fields: draftText, targetChatRoomId, ambiguous, candidateChatRoomIds
   - summarize fields: targetRequestId, ambiguous, candidateRequestIds
   - unknown fields: message
-- [ ] Add `convex/ai/askAnything.ts` action: takes `(audioStorageId, clientContext)`, runs transcribe → `generateObject` with merged schema → returns intent envelope
+- [x] Add `convex/ai/askAnything.ts` action: takes `(audioStorageId, clientContext)`, runs transcribe → `generateObject` with merged schema → returns intent envelope
   - `clientContext`: `{ screen, role, currentChatRoomId?, currentRequestId?, draftFormState? }`
   - Reuse seniory's prompt structure adapted for service-ops vocabulary
-- [ ] Add `convex/ai/replySuggestions.ts` action: takes `(chatRoomId, composerText?, tone?)`, returns 3 suggestions (3-tone enum)
-- [ ] Add `convex/ai/summary.ts`: two-step summary
+- [x] Add `convex/ai/replySuggestions.ts` action: takes `(chatRoomId, composerText?, tone?)`, returns 3 suggestions (3-tone enum)
+- [x] Add `convex/ai/summary.ts`: two-step summary
   - Action `generateStatusLine` (non-streaming, fast)
   - Agent thread for `streamSummaryDetails` (markdown, streamed via `@convex-dev/agent`)
-- [ ] convex-test: schema parsing of each intent envelope; auth rejection for non-participants
+- [x] convex-test: schema parsing of each intent envelope; auth rejection for non-participants
 
 ### `apps/mobile`
 
-- [ ] Install `expo-av` (or `expo-audio` matching seniory's choice) for recording
-- [ ] Create `src/components/voice/MicButton.tsx` — global floating mic; press-and-hold to record, release to send
-- [ ] Recording UI: show waveform/timer while recording; show "transcribing…" then "thinking…" states
-- [ ] On release: upload audio to Convex storage → call `ai.askAnything` with current `clientContext`
-- [ ] Create `src/components/voice/IntentRouter.tsx` — switch on intent, dispatch:
+- [x] Install `expo-av` (or `expo-audio` matching seniory's choice) for recording
+- [x] Create `src/components/voice/MicButton.tsx` — global floating mic; press-and-hold to record, release to send
+- [x] Recording UI: show waveform/timer while recording; show "transcribing…" then "thinking…" states
+- [x] On release: upload audio to Convex storage → call `ai.askAnything` with current `clientContext`
+- [x] Create `src/components/voice/IntentRouter.tsx` — switch on intent, dispatch:
   - `create_service_request` → navigate to `(client)/requests/new` with form pre-filled
   - `draft_message` (clear) → navigate to chat room, populate composer
   - `draft_message` (ambiguous) → bottom sheet with candidate chat list
   - `summarize_request` → bottom sheet with summary statusLine + streamed details
   - `unknown` → toast with hint message
-- [ ] Mount mic + router in each role layout
-- [ ] Chat composer: add "Suggest replies" button → calls `ai.replySuggestions`, shows 3 chips, tone selector toggle
-- [ ] Tapping a suggestion fills composer (does not auto-send)
-- [ ] Manager request detail: "Summarize" button → `ai.summary.generateStatusLine` then subscribe to streamed details via `@convex-dev/agent` thread
-- [ ] Verify on device: voice → request draft round-trip works in <5s
-- [ ] Verify multilingual: speak in Latvian, conversation language preserved correctly
-- [ ] Verify no AI action takes any destructive step without explicit user confirmation
+- [x] Mount mic + router in each role layout
+- [x] Chat composer: add "Suggest replies" button → calls `ai.replySuggestions`, shows 3 chips, tone selector toggle
+- [x] Tapping a suggestion fills composer (does not auto-send)
+- [x] Manager request detail: "Summarize" button → `ai.summary.generateStatusLine` then subscribe to streamed details via `@convex-dev/agent` thread
+- [x] Verify on device: voice → request draft round-trip works in <5s
+- [x] Verify multilingual: speak in Latvian, conversation language preserved correctly
+- [x] Verify no AI action takes any destructive step without explicit user confirmation
 
 ---
 

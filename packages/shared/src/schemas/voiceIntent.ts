@@ -53,3 +53,11 @@ export const VoiceClientContextSchema = z.object({
   draftFormState: z.record(z.string(), z.unknown()).optional(),
 })
 export type VoiceClientContext = z.infer<typeof VoiceClientContextSchema>
+
+export const ReplyToneSchema = z.enum([
+  'friendly',
+  'professional',
+  'supportive',
+  'funny',
+])
+export type ReplyTone = z.infer<typeof ReplyToneSchema>

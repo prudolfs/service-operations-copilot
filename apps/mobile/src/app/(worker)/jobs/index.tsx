@@ -3,6 +3,7 @@ import type { Doc } from '@service-ops/convex/dataModel'
 import { useQuery } from 'convex/react'
 import { router } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { PageLoader } from '@/components/PageLoader'
 import { GlassSurface } from '@/components/parallax'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
@@ -69,6 +70,12 @@ function Section({
 export default function WorkerJobsList() {
   const open = useQuery(api.serviceRequests.listOpen)
   const mine = useQuery(api.serviceRequests.listMyJobs)
+
+  // Hold the full splash until both queries have resolved at least once.
+  // Without this, the user sees the heading + "Loading…" placeholder slots
+  // for a beat before data fills in — feels like a flash on first sign-in
+  // when the websocket is still warming up.
+  if (open === undefined || mine === undefined) return <PageLoader />
 
   return (
     <View className="flex-1 bg-surface-0 pt-safe">

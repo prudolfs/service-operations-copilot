@@ -1,13 +1,22 @@
+import { Ionicons } from '@expo/vector-icons'
 import { api } from '@service-ops/convex/api'
 import type { Doc, Id } from '@service-ops/convex/dataModel'
 import type { ServiceRequestStatus } from '@service-ops/shared'
-import { useMutation, useQuery } from 'convex/react'
+import { useAction, useMutation, useQuery } from 'convex/react'
 import { router, Stack, useLocalSearchParams } from 'expo-router'
-import { useState } from 'react'
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native'
 import { ChatLinkCard } from '@/components/chat'
 import { GlassSurface } from '@/components/parallax'
 import { StatusBadge } from '@/components/StatusBadge'
+import { SummarySheet, useVoiceContext } from '@/components/voice'
 import { formatDateTime, formatServiceType } from '@/lib/format'
 
 const ALL_STATUSES: ServiceRequestStatus[] = [
@@ -26,7 +35,31 @@ export default function ManagerRequestDetail() {
   const assignWorker = useMutation(api.serviceRequests.assignWorker)
   const setStatus = useMutation(api.serviceRequests.setStatus)
   const cancel = useMutation(api.serviceRequests.cancel)
+  const summarize = useAction(api.ai.summary.summarizeRequest)
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [summaryStreamId, setSummaryStreamId] =
+    useState<Id<'summaryStreams'> | null>(null)
+  const [summarizing, setSummarizing] = useState(false)
+
+  // Tell the floating mic which request the manager is on, so a voice ask
+  // like "summarize this" defaults to it without re-prompting.
+  const { setContext } = useVoiceContext()
+  useEffect(() => {
+    setContext({ screen: 'request-detail', currentRequestId: id })
+    return () => setContext({})
+  }, [id, setContext])
+
+  const onSummarize = async () => {
+    setSummarizing(true)
+    try {
+      const { streamId } = await summarize({ requestId: id })
+      setSummaryStreamId(streamId)
+    } catch (err) {
+      Alert.alert('Could not summarize', (err as Error).message)
+    } finally {
+      setSummarizing(false)
+    }
+  }
 
   if (data === undefined) {
     return (
@@ -119,6 +152,22 @@ export default function ManagerRequestDetail() {
 
         <ChatLinkCard serviceRequestId={id} basePath="/(manager)/messages" />
 
+        <Pressable
+          accessibilityRole="button"
+          disabled={summarizing}
+          onPress={onSummarize}
+          className="mt-4 flex-row items-center justify-center gap-2 rounded-2xl border border-brand-400 bg-surface-1 px-5 py-4 active:bg-surface-2"
+        >
+          {summarizing ? (
+            <ActivityIndicator size="small" color="#87b6ff" />
+          ) : (
+            <Ionicons name="sparkles" size={16} color="#87b6ff" />
+          )}
+          <Text className="font-semibold text-base text-brand-300">
+            {summarizing ? 'Summarizing…' : 'Summarize this request'}
+          </Text>
+        </Pressable>
+
         <View className="mt-6">
           <Text className="text-surface-text-muted text-xs uppercase tracking-widest">
             Assign worker
@@ -142,7 +191,7 @@ export default function ManagerRequestDetail() {
                     accessibilityRole="button"
                     disabled={busyKey !== null || isAssigned}
                     onPress={onAssign(w)}
-                    className={`rounded-2xl border px-4 py-3 ${
+                    className={`rounded-2xl border px-4 py-3 will-change-pressable ${
                       isAssigned
                         ? 'border-brand-500 bg-brand-500/10'
                         : 'border-surface-3 bg-surface-1 active:bg-surface-2'
@@ -213,6 +262,10 @@ export default function ManagerRequestDetail() {
           </Pressable>
         ) : null}
       </ScrollView>
+      <SummarySheet
+        streamId={summaryStreamId}
+        onClose={() => setSummaryStreamId(null)}
+      />
     </View>
   )
 }

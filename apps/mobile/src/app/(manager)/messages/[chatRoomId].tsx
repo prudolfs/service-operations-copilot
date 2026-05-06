@@ -4,10 +4,5 @@ import { ChatRoom } from '@/components/chat'
 
 export default function ManagerChatRoomScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: string }>()
-  return (
-    <ChatRoom
-      chatRoomId={chatRoomId as Id<'chatRooms'>}
-      eyebrow="Manager · Chat"
-    />
-  )
+  return <ChatRoom chatRoomId={chatRoomId as Id<'chatRooms'>} />
 }

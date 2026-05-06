@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react'
 import { router } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
+import { PageLoader } from '@/components/PageLoader'
 import { GlassSurface } from '@/components/parallax'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
@@ -52,6 +53,8 @@ export default function ManagerOverview() {
     setTimeout(() => setRefreshing(false), 600)
   }, [])
 
+  if (data === undefined) return <PageLoader />
+
   return (
     <View className="flex-1 bg-surface-0 pt-safe">
       <ScrollView
@@ -76,23 +79,23 @@ export default function ManagerOverview() {
         <View className="flex-row flex-wrap gap-3">
           <MetricCard
             label="Active"
-            value={data?.totalActive ?? '—'}
+            value={data.totalActive}
             hint="Open + assigned + in progress"
           />
           <MetricCard
             label="In progress"
-            value={data?.inProgress ?? '—'}
+            value={data.inProgress}
             hint="Workers on the clock"
           />
           <MetricCard
             label="Unassigned"
-            value={data?.unassignedOpen ?? '—'}
+            value={data.unassignedOpen}
             hint="Need a worker"
-            tone={data && data.unassignedOpen > 0 ? 'warn' : 'default'}
+            tone={data.unassignedOpen > 0 ? 'warn' : 'default'}
           />
           <MetricCard
             label="Done today"
-            value={data?.completedToday ?? '—'}
+            value={data.completedToday}
             hint="Completed since midnight"
           />
         </View>
@@ -102,11 +105,7 @@ export default function ManagerOverview() {
             Needs attention
           </Text>
 
-          {data === undefined ? (
-            <Text className="mt-3 text-base text-surface-text-muted">
-              Loading…
-            </Text>
-          ) : data.needsAttention.length === 0 ? (
+          {data.needsAttention.length === 0 ? (
             <GlassSurface style={{ padding: 24, marginTop: 12 }}>
               <Text className="font-semibold text-base text-surface-text">
                 Inbox zero
