@@ -2,14 +2,12 @@ import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
 
 /**
- * Phase 1 introduces the `users` table — the app-level user record that
- * augments Better Auth's identity with our role concept (client/worker/manager).
+ * Phase 1: `users` — app-level identity + role layered over Better Auth.
+ * Phase 3: `serviceRequests` — the request lifecycle table.
+ *
  * Better Auth's own tables are managed by `@convex-dev/better-auth`'s
  * component and are NOT redeclared here. `authUserId` stores the Better Auth
  * user `_id` as a string foreign key.
- *
- * Future tables (`serviceRequests`, `chatRooms`, `chatMessages`) land in
- * Phases 3–4.
  */
 export default defineSchema({
   users: defineTable({
@@ -26,4 +24,25 @@ export default defineSchema({
   })
     .index('by_auth_user_id', ['authUserId'])
     .index('by_email', ['email']),
+
+  serviceRequests: defineTable({
+    clientId: v.id('users'),
+    assignedWorkerId: v.optional(v.id('users')),
+    serviceType: v.string(),
+    date: v.string(),
+    time: v.string(),
+    notes: v.optional(v.string()),
+    status: v.union(
+      v.literal('OPEN'),
+      v.literal('ASSIGNED'),
+      v.literal('IN_PROGRESS'),
+      v.literal('COMPLETED'),
+      v.literal('CANCELLED'),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_client', ['clientId'])
+    .index('by_worker', ['assignedWorkerId'])
+    .index('by_status', ['status']),
 })

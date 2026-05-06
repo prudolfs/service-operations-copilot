@@ -31,6 +31,23 @@ const findByAuthUserId = (
     .unique()
 
 /**
+ * Resolve the calling Better Auth identity to its app `users` row. Throws if
+ * the request isn't authenticated or `ensureAppUser` hasn't run yet (the
+ * mobile RoleRedirect runs it after sign-in and on every foreground).
+ *
+ * Used by every authenticated mutation/query to enforce role-based access.
+ */
+export const requireAppUser = async (
+  ctx: QueryCtx | MutationCtx,
+): Promise<Doc<'users'>> => {
+  const authUser = await authComponent.getAuthUser(ctx)
+  if (!authUser) throw new Error('Not authenticated')
+  const appUser = await findByAuthUserId(ctx, authUser._id)
+  if (!appUser) throw new Error('App user not provisioned — call ensureAppUser')
+  return appUser
+}
+
+/**
  * Pure DB upsert logic, isolated from Better Auth so tests can drive it via
  * `t.run()` without standing up the full auth component.
  */
@@ -103,12 +120,27 @@ export const currentAppUser = query({
 export const getById = query({
   args: { userId: v.id('users') },
   handler: async (ctx, { userId }): Promise<Doc<'users'> | null> => {
-    const authUser = await authComponent.getAuthUser(ctx)
-    if (!authUser) throw new Error('Not authenticated')
-    const caller = await findByAuthUserId(ctx, authUser._id)
-    if (!caller || caller.role !== 'manager') {
+    const caller = await requireAppUser(ctx)
+    if (caller.role !== 'manager') {
       throw new Error('Only managers can look up users by id')
     }
     return ctx.db.get(userId as Id<'users'>)
+  },
+})
+
+/**
+ * Manager-only roster query the Phase 3 manager request-detail screen uses to
+ * populate the assignWorker picker. Phase 5 adds a richer variant with active
+ * assignment counts; this stays minimal for now.
+ */
+export const listWorkers = query({
+  args: {},
+  handler: async (ctx): Promise<Doc<'users'>[]> => {
+    const caller = await requireAppUser(ctx)
+    if (caller.role !== 'manager') {
+      throw new Error('Only managers can list workers')
+    }
+    const all = await ctx.db.query('users').collect()
+    return all.filter((u) => u.role === 'worker')
   },
 })

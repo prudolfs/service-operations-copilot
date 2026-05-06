@@ -136,35 +136,35 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 
 ### `packages/convex`
 
-- [ ] Add `convex/users.ts` with `users` table per plan §6 (authUserId, email, name, role, createdAt, updatedAt; indices `by_auth_user_id`, `by_email`)
-- [ ] Add `convex/auth.ts` configuring `@convex-dev/better-auth` with Google + GitHub + email/password providers
-- [ ] Configure Better Auth `trustedOrigins` for `serviceops://` deep link
-- [ ] Add Convex env vars: `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_EMAILS`, `WORKER_EMAILS`
-- [ ] Add `convex/users.ts` mutation `ensureAppUser`: read Better Auth user, normalize email to lowercase, lookup by authUserId, resolve role from env vars (`ADMIN_EMAILS` → manager, `WORKER_EMAILS` → worker, else client), create-or-update app user, return app user
-- [ ] Add `convex/users.ts` query `currentAppUser`: returns the app user for the calling Better Auth identity, or null
-- [ ] Add `convex/users.ts` query `getById` (manager-only authorization)
-- [ ] Write convex-test cases: ensureAppUser creates client by default, promotes to worker/manager when email matches env, idempotent on repeated calls, lowercase email normalization, role re-resolves on env change
+- [x] Add `convex/users.ts` with `users` table per plan §6 (authUserId, email, name, role, createdAt, updatedAt; indices `by_auth_user_id`, `by_email`)
+- [x] Add `convex/auth.ts` configuring `@convex-dev/better-auth` with Google + GitHub + email/password providers
+- [x] Configure Better Auth `trustedOrigins` for `serviceops://` deep link
+- [x] Add Convex env vars: `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ADMIN_EMAILS`, `WORKER_EMAILS`
+- [x] Add `convex/users.ts` mutation `ensureAppUser`: read Better Auth user, normalize email to lowercase, lookup by authUserId, resolve role from env vars (`ADMIN_EMAILS` → manager, `WORKER_EMAILS` → worker, else client), create-or-update app user, return app user
+- [x] Add `convex/users.ts` query `currentAppUser`: returns the app user for the calling Better Auth identity, or null
+- [x] Add `convex/users.ts` query `getById` (manager-only authorization)
+- [x] Write convex-test cases: ensureAppUser creates client by default, promotes to worker/manager when email matches env, idempotent on repeated calls, lowercase email normalization, role re-resolves on env change
 
 ### `apps/mobile`
 
-- [ ] Configure deep link scheme `serviceops://` in `app.json` and verify in OAuth redirect URIs (Google + GitHub consoles)
-- [ ] Wrap `_layout.tsx` with `ConvexBetterAuthProvider`
-- [ ] Add `src/auth/useAuth.ts` hook exposing `user`, `isLoading`, `signIn`, `signOut`
-- [ ] Add `src/lib/cn.ts` (clsx + tailwind-merge helper)
-- [ ] Add `src/app/(auth)/_layout.tsx` redirecting away if already signed in
-- [ ] Add `src/app/(auth)/welcome.tsx` (hero static glass card; "Continue with Google / GitHub / Email" buttons)
-- [ ] Add `src/app/(auth)/login.tsx` (email + password form via react-hook-form)
-- [ ] Add `src/app/(auth)/register.tsx` (email + password + name form)
-- [ ] Add `src/app/(client)/_layout.tsx` Tab navigator: Home / Requests / Messages / Profile
-- [ ] Add `src/app/(worker)/_layout.tsx` Tab navigator: Jobs / Messages / Profile
-- [ ] Add `src/app/(manager)/_layout.tsx` Tab navigator: Overview / Requests / Workers / Messages / Profile
-- [ ] Add empty placeholder screens for every tab in each role group
-- [ ] Add `src/auth/RoleRedirect.tsx` component: on mount, calls `ensureAppUser` mutation, then `router.replace("/(client|worker|manager)")` based on returned role
-- [ ] Wire `RoleRedirect` after successful sign-in and on app foreground/resume (per plan §7)
-- [ ] Add sign-out action in profile screens
-- [ ] Verify OAuth round-trip on iOS simulator with Google + GitHub
-- [ ] Verify email/password registration + login round-trip
-- [ ] Verify role redirect: same email moved between `WORKER_EMAILS` and `ADMIN_EMAILS` → role updates after app reload
+- [x] Configure deep link scheme `serviceops://` in `app.json` and verify in OAuth redirect URIs (Google + GitHub consoles)
+- [x] Wrap `_layout.tsx` with `ConvexBetterAuthProvider`
+- [x] Add `src/auth/useAuth.ts` hook exposing `user`, `isLoading`, `signIn`, `signOut`
+- [x] Add `src/lib/cn.ts` (clsx + tailwind-merge helper)
+- [x] Add `src/app/(auth)/_layout.tsx` redirecting away if already signed in
+- [x] Add `src/app/(auth)/welcome.tsx` (hero static glass card; "Continue with Google / GitHub / Email" buttons)
+- [x] Add `src/app/(auth)/login.tsx` (email + password form via react-hook-form)
+- [x] Add `src/app/(auth)/register.tsx` (email + password + name form)
+- [x] Add `src/app/(client)/_layout.tsx` Tab navigator: Home / Requests / Messages / Profile
+- [x] Add `src/app/(worker)/_layout.tsx` Tab navigator: Jobs / Messages / Profile
+- [x] Add `src/app/(manager)/_layout.tsx` Tab navigator: Overview / Requests / Workers / Messages / Profile
+- [x] Add empty placeholder screens for every tab in each role group
+- [x] Add `src/auth/RoleRedirect.tsx` component: on mount, calls `ensureAppUser` mutation, then `router.replace("/(client|worker|manager)")` based on returned role
+- [x] Wire `RoleRedirect` after successful sign-in and on app foreground/resume (per plan §7)
+- [x] Add sign-out action in profile screens
+- [x] Verify OAuth round-trip on iOS simulator with Google + GitHub
+- [x] Verify email/password registration + login round-trip
+- [x] Verify role redirect: same email moved between `WORKER_EMAILS` and `ADMIN_EMAILS` → role updates after app reload
 
 ---
 
@@ -193,36 +193,36 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 
 ### `packages/convex`
 
-- [ ] Add `serviceRequests` table per plan §11 (clientId, assignedWorkerId, serviceType, date, time, notes, status, createdAt, updatedAt; indices `by_client`, `by_worker`, `by_status`)
-- [ ] Status enum: `OPEN | ASSIGNED | IN_PROGRESS | COMPLETED | CANCELLED`
-- [ ] Mutation `serviceRequests.create` (client only; validates with shared zod schema)
-- [ ] Mutation `serviceRequests.accept` (worker only; transitions OPEN → ASSIGNED, sets assignedWorkerId to caller)
-- [ ] Mutation `serviceRequests.start` (assigned worker only; ASSIGNED → IN_PROGRESS)
-- [ ] Mutation `serviceRequests.complete` (assigned worker only; IN_PROGRESS → COMPLETED)
-- [ ] Mutation `serviceRequests.cancel` (client owner or manager; any state → CANCELLED)
-- [ ] Mutation `serviceRequests.assignWorker` (manager only; sets assignedWorkerId, status → ASSIGNED)
-- [ ] Mutation `serviceRequests.setStatus` (manager only; arbitrary status override)
-- [ ] Query `serviceRequests.listMyRequests` (client; uses `by_client` index)
-- [ ] Query `serviceRequests.listOpen` (worker; status = OPEN, ordered by createdAt)
-- [ ] Query `serviceRequests.listMyJobs` (worker; assignedWorkerId = caller, all non-cancelled)
-- [ ] Query `serviceRequests.listAll` (manager only; paginated, filterable by status)
-- [ ] Query `serviceRequests.getById` (client owner / assigned worker / any manager)
-- [ ] Add `convex/seed.ts` internal mutation `seed.dev` creating 1 client / 2 workers / 1 manager / 3 sample requests for dev only
-- [ ] convex-test: each authorization rule (client cannot read another client's request, worker cannot accept own client request, etc.)
+- [x] Add `serviceRequests` table per plan §11 (clientId, assignedWorkerId, serviceType, date, time, notes, status, createdAt, updatedAt; indices `by_client`, `by_worker`, `by_status`)
+- [x] Status enum: `OPEN | ASSIGNED | IN_PROGRESS | COMPLETED | CANCELLED`
+- [x] Mutation `serviceRequests.create` (client only; validates with shared zod schema)
+- [x] Mutation `serviceRequests.accept` (worker only; transitions OPEN → ASSIGNED, sets assignedWorkerId to caller)
+- [x] Mutation `serviceRequests.start` (assigned worker only; ASSIGNED → IN_PROGRESS)
+- [x] Mutation `serviceRequests.complete` (assigned worker only; IN_PROGRESS → COMPLETED)
+- [x] Mutation `serviceRequests.cancel` (client owner or manager; any state → CANCELLED)
+- [x] Mutation `serviceRequests.assignWorker` (manager only; sets assignedWorkerId, status → ASSIGNED)
+- [x] Mutation `serviceRequests.setStatus` (manager only; arbitrary status override)
+- [x] Query `serviceRequests.listMyRequests` (client; uses `by_client` index)
+- [x] Query `serviceRequests.listOpen` (worker; status = OPEN, ordered by createdAt)
+- [x] Query `serviceRequests.listMyJobs` (worker; assignedWorkerId = caller, all non-cancelled)
+- [x] Query `serviceRequests.listAll` (manager only; paginated, filterable by status)
+- [x] Query `serviceRequests.getById` (client owner / assigned worker / any manager)
+- [x] Add `convex/seed.ts` internal mutation `seed.dev` creating 1 client / 2 workers / 1 manager / 3 sample requests for dev only
+- [x] convex-test: each authorization rule (client cannot read another client's request, worker cannot accept own client request, etc.)
 
 ### `apps/mobile`
 
-- [ ] Client: `src/app/(client)/requests/new.tsx` — react-hook-form + zod resolver, fields per plan §10.2 (serviceType select, date/time pickers, notes textarea), submit calls `serviceRequests.create`, navigates to detail
-- [ ] Client: `src/app/(client)/requests/index.tsx` — list of own requests (uses `useQuery(serviceRequests.listMyRequests)`), status badge, tap to detail
-- [ ] Client: `src/app/(client)/requests/[requestId].tsx` — detail view, cancel button when status allows
-- [ ] Client: `src/app/(client)/index.tsx` — home with "Create new request" CTA + recent requests
-- [ ] Worker: `src/app/(worker)/jobs/index.tsx` — two sections: Open (acceptable) + My Jobs (assigned)
-- [ ] Worker: `src/app/(worker)/jobs/[jobId].tsx` — detail with Accept / Start / Complete buttons depending on state
-- [ ] Manager: `src/app/(manager)/requests/index.tsx` — all requests, filter by status
-- [ ] Manager: `src/app/(manager)/requests/[requestId].tsx` — detail with assignWorker + setStatus controls
-- [ ] Status badge component reused across roles
-- [ ] Empty states for each list
-- [ ] Realtime test: open client + manager on two devices/simulators, create a request as client, manager sees it appear; manager assigns, client sees status flip
+- [x] Client: `src/app/(client)/requests/new.tsx` — react-hook-form + zod resolver, fields per plan §10.2 (serviceType select, date/time pickers, notes textarea), submit calls `serviceRequests.create`, navigates to detail
+- [x] Client: `src/app/(client)/requests/index.tsx` — list of own requests (uses `useQuery(serviceRequests.listMyRequests)`), status badge, tap to detail
+- [x] Client: `src/app/(client)/requests/[requestId].tsx` — detail view, cancel button when status allows
+- [x] Client: `src/app/(client)/index.tsx` — home with "Create new request" CTA + recent requests
+- [x] Worker: `src/app/(worker)/jobs/index.tsx` — two sections: Open (acceptable) + My Jobs (assigned)
+- [x] Worker: `src/app/(worker)/jobs/[jobId].tsx` — detail with Accept / Start / Complete buttons depending on state
+- [x] Manager: `src/app/(manager)/requests/index.tsx` — all requests, filter by status
+- [x] Manager: `src/app/(manager)/requests/[requestId].tsx` — detail with assignWorker + setStatus controls
+- [x] Status badge component reused across roles
+- [x] Empty states for each list
+- [x] Realtime test: open client + manager on two devices/simulators, create a request as client, manager sees it appear; manager assigns, client sees status flip
 
 ---
 

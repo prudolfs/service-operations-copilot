@@ -25,7 +25,7 @@ export const CreateServiceRequestSchema = z.object({
   serviceType: ServiceTypeSchema,
   date: z.string().regex(isoDateRegex, 'Use YYYY-MM-DD'),
   time: z.string().regex(timeRegex, 'Use HH:mm (24h)'),
-  notes: z.string().trim().max(2000).optional().default(''),
+  notes: z.string().trim().max(2000).optional(),
 })
 export type CreateServiceRequestInput = z.infer<
   typeof CreateServiceRequestSchema

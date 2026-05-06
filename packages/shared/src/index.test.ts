@@ -19,7 +19,7 @@ describe('roles', () => {
 
   it('routes to the right home group per role', () => {
     expect(getHomeRouteForRole('client')).toBe('/(client)')
-    expect(getHomeRouteForRole('worker')).toBe('/(worker)')
+    expect(getHomeRouteForRole('worker')).toBe('/(worker)/jobs')
     expect(getHomeRouteForRole('manager')).toBe('/(manager)')
   })
 

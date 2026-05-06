@@ -16,13 +16,17 @@ export const isManager = (role: Role | null | undefined): role is 'manager' =>
  * Route group root for a given role. Used by mobile RoleRedirect (Phase 1) and
  * web role redirect (Phase 7) so navigation stays in lockstep with backend role
  * resolution.
+ *
+ * Worker lands on the `jobs` tab directly because that group has no `index.tsx`
+ * — its first screen lives under `/(worker)/jobs/index.tsx` so request-detail
+ * routing can nest underneath as `/(worker)/jobs/[jobId]`.
  */
 export const getHomeRouteForRole = (role: Role): string => {
   switch (role) {
     case 'client':
       return '/(client)'
     case 'worker':
-      return '/(worker)'
+      return '/(worker)/jobs'
     case 'manager':
       return '/(manager)'
   }

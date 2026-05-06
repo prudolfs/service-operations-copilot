@@ -16,7 +16,7 @@ export default function WorkerLayout() {
         tabBarInactiveTintColor: '#9aa3b6',
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Jobs' }} />
+      <Tabs.Screen name="jobs" options={{ title: 'Jobs' }} />
       <Tabs.Screen name="messages" options={{ title: 'Messages' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
     </Tabs>
