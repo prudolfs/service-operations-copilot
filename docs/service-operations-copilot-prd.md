@@ -263,19 +263,19 @@ This document is a checklist. Mark tasks `[x]` when complete. Phases are sequent
 
 ### `packages/convex`
 
-- [ ] Query `manager.overview` returning counts: total active, in-progress, unassigned-open, completed-today
-- [ ] Query `manager.listWorkers` returning workers with active assignment counts (`by_worker` aggregation)
-- [ ] Query `manager.workerDetail` returning a worker's recent jobs
-- [ ] convex-test: all manager queries reject non-manager callers
+- [x] Query `manager.overview` returning counts: total active, in-progress, unassigned-open, completed-today
+- [x] Query `manager.listWorkers` returning workers with active assignment counts (`by_worker` aggregation)
+- [x] Query `manager.workerDetail` returning a worker's recent jobs
+- [x] convex-test: all manager queries reject non-manager callers
 
 ### `apps/mobile`
 
-- [ ] Manager: `src/app/(manager)/index.tsx` — Overview screen with metric cards (parallax) + "needs attention" list
-- [ ] Manager: `src/app/(manager)/requests/index.tsx` — already exists from Phase 3; add status/assignee filters and sort
-- [ ] Manager: `src/app/(manager)/workers/index.tsx` — worker roster with avatar + active job count
-- [ ] Manager: `src/app/(manager)/workers/[workerId].tsx` — worker detail with recent jobs list
-- [ ] Pull-to-refresh on all list screens
-- [ ] Empty states tuned for "nothing needs attention"
+- [x] Manager: `src/app/(manager)/index.tsx` — Overview screen with metric cards (parallax) + "needs attention" list
+- [x] Manager: `src/app/(manager)/requests/index.tsx` — already exists from Phase 3; add status/assignee filters and sort
+- [x] Manager: `src/app/(manager)/workers/index.tsx` — worker roster with avatar + active job count
+- [x] Manager: `src/app/(manager)/workers/[workerId].tsx` — worker detail with recent jobs list
+- [x] Pull-to-refresh on all list screens
+- [x] Empty states tuned for "nothing needs attention"
 
 ---
 
