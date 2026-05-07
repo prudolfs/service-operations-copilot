@@ -44,6 +44,36 @@ export const Route = createRootRoute({
         sizes: '180x180',
         href: '/icons/apple-touch-icon.png',
       },
+      {
+        rel: 'apple-touch-startup-image',
+        href: '/icons/splash/iphone-14-15-pro-max.png',
+        media:
+          '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)',
+      },
+      {
+        rel: 'apple-touch-startup-image',
+        href: '/icons/splash/iphone-14-15-pro.png',
+        media:
+          '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)',
+      },
+      {
+        rel: 'apple-touch-startup-image',
+        href: '/icons/splash/iphone-12-13-14.png',
+        media:
+          '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)',
+      },
+      {
+        rel: 'apple-touch-startup-image',
+        href: '/icons/splash/iphone-se-8.png',
+        media:
+          '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)',
+      },
+      {
+        rel: 'apple-touch-startup-image',
+        href: '/icons/splash/ipad-pro-11.png',
+        media:
+          '(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)',
+      },
     ],
   }),
   shellComponent: RootDocument,

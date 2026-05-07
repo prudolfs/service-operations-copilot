@@ -9,9 +9,25 @@ const webRoot = resolve(__dirname, '..')
 const repoRoot = resolve(webRoot, '..', '..')
 const sourceIcon = resolve(repoRoot, 'icon.png')
 const outDir = resolve(webRoot, 'public', 'icons')
+const splashDir = resolve(outDir, 'splash')
 
 const BRAND_BG = '#0a0d14'
 const MASKABLE_SAFE_ZONE = 0.8
+const SPLASH_ICON_RATIO = 0.4
+
+type SplashSpec = {
+  name: string
+  width: number
+  height: number
+}
+
+const SPLASHES: SplashSpec[] = [
+  { name: 'iphone-14-15-pro-max', width: 1290, height: 2796 },
+  { name: 'iphone-14-15-pro', width: 1179, height: 2556 },
+  { name: 'iphone-12-13-14', width: 1170, height: 2532 },
+  { name: 'iphone-se-8', width: 750, height: 1334 },
+  { name: 'ipad-pro-11', width: 1668, height: 2388 },
+]
 
 async function ensureDir(path: string) {
   await mkdir(path, { recursive: true })
@@ -53,6 +69,31 @@ async function generateMaskable(size: number, outFile: string) {
   await writePng(resolve(outDir, outFile), buf)
 }
 
+async function generateSplash(spec: SplashSpec) {
+  const inner = Math.round(spec.width * SPLASH_ICON_RATIO)
+  const top = Math.round((spec.height - inner) / 2)
+  const left = Math.round((spec.width - inner) / 2)
+
+  const innerBuf = await sharp(sourceIcon)
+    .resize(inner, inner, { fit: 'cover' })
+    .png()
+    .toBuffer()
+
+  const buf = await sharp({
+    create: {
+      width: spec.width,
+      height: spec.height,
+      channels: 4,
+      background: BRAND_BG,
+    },
+  })
+    .composite([{ input: innerBuf, top, left }])
+    .png()
+    .toBuffer()
+
+  await writePng(resolve(splashDir, `${spec.name}.png`), buf)
+}
+
 async function generateFavicon() {
   const sizes = [16, 32, 48]
   const pngs = await Promise.all(
@@ -67,6 +108,7 @@ async function generateFavicon() {
 
 async function main() {
   await ensureDir(outDir)
+  await ensureDir(splashDir)
   console.log(`source: ${sourceIcon}`)
   console.log(`out:    ${outDir}`)
 
@@ -75,6 +117,10 @@ async function main() {
   await generateMaskable(512, 'icon-maskable-512.png')
   await generateSquare(180, 'apple-touch-icon.png')
   await generateFavicon()
+
+  for (const spec of SPLASHES) {
+    await generateSplash(spec)
+  }
 
   console.log('done.')
 }

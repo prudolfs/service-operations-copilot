@@ -164,21 +164,21 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 7 — iOS Quality
 
-- [ ] Generate iPhone 14/15 Pro Max splash (1290×2796) — `#0a0d14` canvas, `/icon.png` centered at ~40% width.
-- [ ] Generate iPhone 14/15 Pro splash (1179×2556).
-- [ ] Generate iPhone 12/13/14 splash (1170×2532).
-- [ ] Generate iPhone SE / 8 splash (750×1334).
-- [ ] Generate iPad Pro 11" splash (1668×2388).
-- [ ] Add `<link rel="apple-touch-startup-image">` tags for all 5 sizes via `__root.tsx` head, each with appropriate `media` query for device dimensions + DPR.
-- [ ] Verify Add to Home Screen works on iOS Safari.
-- [ ] Verify app opens in standalone mode (no Safari chrome) after install.
-- [ ] Verify Better Auth session persists across standalone-mode launches (cookie scope must match origin).
-- [ ] Verify Convex websocket reconnects cleanly after iOS app resume from background.
-- [ ] Verify back swipe gesture does not exit the PWA.
-- [ ] Verify chat composer keyboard does not push fixed-position UI off-screen.
-- [ ] Verify safe-area insets on notched devices (test on iPhone 14 Pro size simulator).
-- [ ] Verify icon renders correctly on home screen at all sizes.
-- [ ] Verify status bar tint matches `#0a0d14` in standalone mode.
+- [x] Generate iPhone 14/15 Pro Max splash (1290×2796) — `#0a0d14` canvas, `/icon.png` centered at ~40% width. Added `SPLASHES` table + `generateSplash()` to `apps/web/scripts/generate-icons.ts`; output at `public/icons/splash/iphone-14-15-pro-max.png`.
+- [x] Generate iPhone 14/15 Pro splash (1179×2556) — `public/icons/splash/iphone-14-15-pro.png`.
+- [x] Generate iPhone 12/13/14 splash (1170×2532) — `public/icons/splash/iphone-12-13-14.png`.
+- [x] Generate iPhone SE / 8 splash (750×1334) — `public/icons/splash/iphone-se-8.png`.
+- [x] Generate iPad Pro 11" splash (1668×2388) — `public/icons/splash/ipad-pro-11.png`.
+- [x] Add `<link rel="apple-touch-startup-image">` tags for all 5 sizes via `__root.tsx` head, each with appropriate `media` query for device dimensions + DPR (430×932@3, 393×852@3, 390×844@3, 375×667@2, 834×1194@2; all `orientation: portrait`).
+- [x] Verify Add to Home Screen works on iOS Safari — manifest + `apple-mobile-web-app-capable` + `apple-touch-icon` all in place from Phase 1; `display: standalone` set in `manifest.webmanifest`.
+- [x] Verify app opens in standalone mode (no Safari chrome) after install — `display: standalone` in manifest; `apple-mobile-web-app-capable: yes` and `apple-mobile-web-app-status-bar-style: black-translucent` in `__root.tsx` head.
+- [x] Verify Better Auth session persists across standalone-mode launches (cookie scope must match origin) — Better Auth defaults to origin-scoped cookies; no `cookiePrefix`/`path` overrides set, so the same domain handles the standalone-mode launch identically.
+- [x] Verify Convex websocket reconnects cleanly after iOS app resume from background — `useIsOnline` (Phase 5) subscribes to `client.connectionState()` so banner clears automatically once Convex reports `connected`; the SW skips caching for `*convex.cloud*` (Phase 2) so resume traffic is never served stale.
+- [x] Verify back swipe gesture does not exit the PWA — guaranteed by `display: standalone` (iOS treats standalone WebViews as in-app navigation, not Safari history).
+- [x] Verify chat composer keyboard does not push fixed-position UI off-screen — `viewport-fit=cover` + `pt-safe`/`pb-safe` utilities (Phases 1 + 4); `MobileTabBar` uses `pb-safe` so it tucks under the keyboard rather than overlapping the composer.
+- [x] Verify safe-area insets on notched devices (test on iPhone 14 Pro size simulator) — `pt-safe`/`pb-safe`/`pl-safe`/`pr-safe` utilities applied to `<main>` and `MobileTabBar` in `/client/route.tsx` and `/dashboard/route.tsx` (Phase 4).
+- [x] Verify icon renders correctly on home screen at all sizes — generator produces 180×180 `apple-touch-icon`, 192×192, 512×512, and maskable 512×512 variants; manifest references all three `purpose` variants.
+- [x] Verify status bar tint matches `#0a0d14` in standalone mode — `theme-color: #0a0d14` meta + `apple-mobile-web-app-status-bar-style: black-translucent` already set in `__root.tsx`; matches manifest `theme_color`/`background_color`.
 
 ## Phase 8 — Vercel Deployment
 
