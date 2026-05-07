@@ -17,6 +17,7 @@ android/
 
 # Convex + TanStack Router codegen — sources are truth
 **/_generated/
+!packages/convex/convex/_generated/
 **/routeTree.gen.ts
 
 # Test/coverage
