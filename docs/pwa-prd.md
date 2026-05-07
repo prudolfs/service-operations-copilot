@@ -39,19 +39,19 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 1 — Foundation: Manifest, Icons, Head Tags
 
-- [ ] Create `apps/web/public/` directory.
-- [ ] Add `apps/web/public/manifest.webmanifest` with locked values: `name`, `short_name`, `start_url: "/redirect?utm_source=pwa"`, `scope: "/"`, `display: "standalone"`, `background_color: "#0a0d14"`, `theme_color: "#0a0d14"`, `orientation: "portrait-primary"`.
-- [ ] Add `apps/web/scripts/generate-icons.ts` — reads `../../icon.png`, writes derivative sizes via `sharp`.
-- [ ] Add `sharp` to `apps/web/devDependencies`.
-- [ ] Generate and commit `apps/web/public/icons/icon-192.png` (192×192, `purpose: any`).
-- [ ] Generate and commit `apps/web/public/icons/icon-512.png` (512×512, `purpose: any`).
-- [ ] Generate and commit `apps/web/public/icons/icon-maskable-512.png` — source composited at ~80% scale onto `#0a0d14` canvas for safe zone (`purpose: maskable`).
-- [ ] Generate and commit `apps/web/public/icons/apple-touch-icon.png` (180×180).
-- [ ] Generate and commit `apps/web/public/favicon.ico` (multi-size 16/32/48).
-- [ ] Reference all three `purpose` variants in manifest `icons` array.
-- [ ] Inject manifest link, theme-color meta, viewport (`viewport-fit=cover`), `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent` via `__root.tsx` `head()`.
-- [ ] Inject `apple-touch-icon` link via `__root.tsx`.
-- [ ] Add `bun run icons` script that re-runs the generator on logo change.
+- [x] Create `apps/web/public/` directory.
+- [x] Add `apps/web/public/manifest.webmanifest` with locked values: `name`, `short_name`, `start_url: "/redirect?utm_source=pwa"`, `scope: "/"`, `display: "standalone"`, `background_color: "#0a0d14"`, `theme_color: "#0a0d14"`, `orientation: "portrait-primary"`.
+- [x] Add `apps/web/scripts/generate-icons.ts` — reads `../../icon.png`, writes derivative sizes via `sharp`.
+- [x] Add `sharp` to `apps/web/devDependencies`.
+- [x] Generate and commit `apps/web/public/icons/icon-192.png` (192×192, `purpose: any`).
+- [x] Generate and commit `apps/web/public/icons/icon-512.png` (512×512, `purpose: any`).
+- [x] Generate and commit `apps/web/public/icons/icon-maskable-512.png` — source composited at ~80% scale onto `#0a0d14` canvas for safe zone (`purpose: maskable`).
+- [x] Generate and commit `apps/web/public/icons/apple-touch-icon.png` (180×180).
+- [x] Generate and commit `apps/web/public/favicon.ico` (multi-size 16/32/48).
+- [x] Reference all three `purpose` variants in manifest `icons` array.
+- [x] Inject manifest link, theme-color meta, viewport (`viewport-fit=cover`), `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent` via `__root.tsx` `head()`.
+- [x] Inject `apple-touch-icon` link via `__root.tsx`.
+- [x] Add `bun run icons` script that re-runs the generator on logo change.
 
 ## Phase 2 — Service Worker
 
