@@ -127,7 +127,7 @@ function SignOutButton() {
 export function MobileTabBar({ items }: { items: NavItem[] }) {
   const location = useLocation()
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-surface-3 border-t bg-surface-1/95 px-2 backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-surface-3 border-t bg-surface-1/95 px-2 pb-safe backdrop-blur md:hidden">
       {items.map((item) => {
         const active =
           item.to === location.pathname ||

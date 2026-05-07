@@ -27,7 +27,7 @@ function ClientLayout() {
     <VoiceProvider>
       <div className="min-h-screen bg-surface-0 md:pl-64">
         <Sidebar items={CLIENT_NAV} eyebrow="Client" />
-        <main className="pb-20 md:pb-0">
+        <main className="pt-safe pb-24 md:pb-0">
           <Outlet />
         </main>
         <MobileTabBar items={CLIENT_NAV} />

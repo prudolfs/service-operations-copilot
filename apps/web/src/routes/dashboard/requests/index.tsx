@@ -17,7 +17,7 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'OPEN', label: 'Open' },
   { value: 'ASSIGNED', label: 'Assigned' },
   { value: 'IN_PROGRESS', label: 'In progress' },
-  { value: 'COMPLETED', label: 'Done' },
+  { value: 'COMPLETED', label: 'Completed' },
   { value: 'CANCELLED', label: 'Cancelled' },
 ]
 

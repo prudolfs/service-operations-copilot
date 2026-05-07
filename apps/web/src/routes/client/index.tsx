@@ -1,7 +1,7 @@
 import { api } from '@service-ops/convex/api'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import { GlassCard } from '@/components/glass'
+import { Plus } from 'lucide-react'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
 
@@ -24,20 +24,13 @@ function ClientHome() {
         </h1>
       </header>
 
-      <GlassCard className="mt-8">
-        <h2 className="font-semibold text-lg text-surface-text">
-          Need a hand?
-        </h2>
-        <p className="mt-2 text-base text-surface-text-muted">
-          Create a service request and a worker will pick it up.
-        </p>
-        <Link
-          to="/client/requests/new"
-          className="mt-4 inline-block rounded-2xl bg-brand-500 px-5 py-3 font-semibold text-base text-white hover:bg-brand-600"
-        >
-          + New request
-        </Link>
-      </GlassCard>
+      <Link
+        to="/client/requests/new"
+        className="mt-8 flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-brand-500 px-6 py-4 font-semibold text-base text-white shadow-brand-500/20 shadow-lg hover:bg-brand-600 sm:w-auto sm:self-start"
+      >
+        <Plus size={20} />
+        Create new request
+      </Link>
 
       <section className="mt-10">
         <p className="text-surface-text-muted text-xs uppercase tracking-widest">

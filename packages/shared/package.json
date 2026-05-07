@@ -11,7 +11,8 @@
       "default": "./src/index.ts"
     },
     "./styles/theme.css": "./src/styles/theme.css",
-    "./styles/glass.css": "./src/styles/glass.css"
+    "./styles/glass.css": "./src/styles/glass.css",
+    "./styles/safe-area.css": "./src/styles/safe-area.css"
   },
   "scripts": {
     "test": "vitest run",

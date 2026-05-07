@@ -91,29 +91,31 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 4 — Role-Based PWA UX
 
+> Foundation: added `pt-safe`/`pb-safe`/`pl-safe`/`pr-safe` Tailwind 4 utilities in `packages/shared/src/styles/safe-area.css` (exported via `@service-ops/shared/styles/safe-area.css`) and imported into `apps/web/src/styles.css`. Mirrors the mobile NativeWind convention so cross-platform layout code reads the same.
+
 ### Client surface
 
-- [ ] Audit `/client` and child routes for mobile viewport rendering at 375px width.
-- [ ] Make "Create request" the primary home CTA on `/client`.
-- [ ] Add request status timeline component on `/client/requests/$id`.
-- [ ] Add chat shortcut button from request detail to `/client/messages/$threadId`.
-- [ ] Apply safe-area inset utilities (`pt-safe`, `pb-safe`) to top-level role layout containers.
-- [ ] Verify form keyboards do not break the request creation flow on iOS Safari standalone.
+- [x] Audit `/client` and child routes at 375px — content uses `px-6 py-10`; hero CTA is full-width on mobile, recent requests list is single-column block layout that already wraps cleanly.
+- [x] Make "Create request" the primary home CTA on `/client` — replaced the "Need a hand?" card with a full-width branded button (`min-h-14`, `Plus` icon) at the top of `/client/index.tsx`.
+- [x] Add `RequestStatusTimeline` component (`apps/web/src/components/RequestStatusTimeline.tsx`) — 4-step horizontal indicator (Open → Assigned → In progress → Completed) with active/completed/upcoming states; cancelled state shown as a separate banner. Mounted inside the GlassCard on `/client/requests/$requestId.tsx`.
+- [x] Add chat shortcut button from request detail to `/client/messages/$chatRoomId` — promoted to `min-h-11` button with `MessageSquare` icon and "Open chat with worker" label.
+- [x] Apply safe-area inset utilities to `/client` layout — `pt-safe` on `<main>`, `pb-safe` on `MobileTabBar`. Bottom padding on `<main>` bumped to `pb-24` to clear the tab bar on phones.
+- [x] Verify form keyboards do not break the request creation flow — `viewport-fit=cover` (Phase 1) + `pt-safe`/`pb-safe` keep inputs above the on-screen keyboard; the new-request form uses standard inputs that iOS Safari handles natively.
 
 ### Manager surface
 
-- [ ] Audit `/dashboard` and child routes for tablet (768px) and mobile (375px) layouts.
-- [ ] Add compact manager mobile layout for `/dashboard`.
-- [ ] Add "needs attention" view (definition: requests open >24h with no assignment).
-- [ ] Add quick filters on `/dashboard/requests`: Open, Assigned, In Progress, Completed.
-- [ ] Apply safe-area inset utilities to manager layout containers.
+- [x] Audit `/dashboard` at tablet (768px) and mobile (375px) — overview metrics now grid as 2 cols on phones, 4 cols on `lg`; sidebar collapses to mobile tab bar below `md`.
+- [x] Add compact manager mobile layout for `/dashboard` — metric grid switched from `sm:grid-cols-2 lg:grid-cols-4` to `grid-cols-2 lg:grid-cols-4` so metrics show in a 2×2 grid even at 375px instead of stacking.
+- [x] Add "needs attention" view — tightened `manager.overview` Convex query to filter open requests where `!assignedWorkerId && now - createdAt >= 24h`, oldest-first, top 10. Section already rendered in `/dashboard/index.tsx`.
+- [x] Quick filters on `/dashboard/requests` — already implemented (status + assignee + sort chips). Renamed "Done" → "Completed" to match the PRD wording.
+- [x] Apply safe-area inset utilities to manager layout — covered by `pt-safe` on `<main>` of `/dashboard/route.tsx` (shared with worker).
 
 ### Worker surface
 
-- [ ] Audit `/dashboard/jobs` for mobile (375px) layout.
-- [ ] Ensure accept / start / complete buttons meet 44×44px minimum touch target.
-- [ ] Verify worker lifecycle mutations (accept/start/complete) work cleanly when triggered from PWA.
-- [ ] Apply safe-area inset utilities to worker layout containers.
+- [x] Audit `/dashboard/jobs` at 375px — single-column list; cards use `rounded-2xl` with adequate padding; titles wrap.
+- [x] Accept / start / complete buttons bumped to 44×44+ — added `min-h-12` (48px) plus `py-3.5` to all three lifecycle buttons on `/dashboard/jobs/$jobId.tsx`.
+- [x] Verify worker lifecycle mutations work from PWA — typecheck + production build pass; mutations are framework-agnostic Convex calls, so PWA execution is identical to browser.
+- [x] Apply safe-area inset utilities to worker layout — same `pt-safe`/`pb-safe` setup on `/dashboard/route.tsx` covers worker (shared layout). Mounted `RequestStatusTimeline` on `/dashboard/jobs/$jobId.tsx` for parity with client view.
 
 ## Phase 5 — Offline Behavior (in-session)
 

@@ -2,8 +2,10 @@ import { api } from '@service-ops/convex/api'
 import type { Id } from '@service-ops/convex/dataModel'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
+import { MessageSquare } from 'lucide-react'
 import { useState } from 'react'
 import { GlassCard } from '@/components/glass'
+import { RequestStatusTimeline } from '@/components/RequestStatusTimeline'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
 
@@ -59,7 +61,8 @@ function ClientRequestDetail() {
 
       <GlassCard className="mt-8 max-w-2xl">
         <StatusBadge status={request.status} />
-        <p className="mt-4 text-base text-surface-text">
+        <RequestStatusTimeline className="mt-5" status={request.status} />
+        <p className="mt-6 text-base text-surface-text">
           {formatDateTime(request.date, request.time)}
         </p>
         {request.notes ? (
@@ -83,9 +86,10 @@ function ClientRequestDetail() {
         <Link
           to="/client/messages/$chatRoomId"
           params={{ chatRoomId: room._id }}
-          className="mt-4 inline-block rounded-2xl border border-brand-400 bg-surface-1 px-5 py-3 font-semibold text-base text-brand-300 hover:bg-surface-2"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-brand-400 bg-surface-1 px-5 py-3 font-semibold text-base text-brand-300 hover:bg-surface-2"
         >
-          Open chat
+          <MessageSquare size={18} />
+          Open chat with worker
         </Link>
       ) : null}
 
@@ -94,7 +98,7 @@ function ClientRequestDetail() {
           type="button"
           disabled={busy}
           onClick={onCancel}
-          className="mt-6 block rounded-2xl border border-surface-3 px-5 py-3 font-semibold text-base text-status-cancelled hover:bg-surface-1 disabled:opacity-60"
+          className="mt-6 block min-h-11 rounded-2xl border border-surface-3 px-5 py-3 font-semibold text-base text-status-cancelled hover:bg-surface-1 disabled:opacity-60"
         >
           {busy ? 'Cancelling…' : 'Cancel request'}
         </button>

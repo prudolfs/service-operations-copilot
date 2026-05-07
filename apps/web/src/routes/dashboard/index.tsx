@@ -36,7 +36,7 @@ function DashboardOverview() {
         </h1>
       </header>
 
-      <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Metric
           label="Active"
           value={data.totalActive}

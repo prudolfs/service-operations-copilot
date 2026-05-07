@@ -2,8 +2,10 @@ import { api } from '@service-ops/convex/api'
 import type { Id } from '@service-ops/convex/dataModel'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
+import { MessageSquare } from 'lucide-react'
 import { useState } from 'react'
 import { GlassCard } from '@/components/glass'
+import { RequestStatusTimeline } from '@/components/RequestStatusTimeline'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
 
@@ -60,7 +62,8 @@ function WorkerJobDetail() {
 
       <GlassCard className="mt-8 max-w-2xl">
         <StatusBadge status={request.status} />
-        <p className="mt-4 text-base text-surface-text">
+        <RequestStatusTimeline className="mt-5" status={request.status} />
+        <p className="mt-6 text-base text-surface-text">
           {formatDateTime(request.date, request.time)}
         </p>
         {request.notes ? (
@@ -92,8 +95,9 @@ function WorkerJobDetail() {
         <Link
           to="/dashboard/messages/$chatRoomId"
           params={{ chatRoomId: room._id }}
-          className="mt-4 inline-block rounded-2xl border border-brand-400 bg-surface-1 px-5 py-3 font-semibold text-base text-brand-300 hover:bg-surface-2"
+          className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-brand-400 bg-surface-1 px-5 py-3 font-semibold text-base text-brand-300 hover:bg-surface-2"
         >
+          <MessageSquare size={18} />
           Open chat
         </Link>
       ) : null}
@@ -110,7 +114,7 @@ function WorkerJobDetail() {
             type="button"
             disabled={busy !== null}
             onClick={run('accept', () => accept({ requestId: id }))}
-            className="rounded-2xl bg-brand-500 px-5 py-3 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
+            className="min-h-12 rounded-2xl bg-brand-500 px-5 py-3.5 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
           >
             {busy === 'accept' ? 'Accepting…' : 'Accept job'}
           </button>
@@ -120,7 +124,7 @@ function WorkerJobDetail() {
             type="button"
             disabled={busy !== null}
             onClick={run('start', () => start({ requestId: id }))}
-            className="rounded-2xl bg-brand-500 px-5 py-3 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
+            className="min-h-12 rounded-2xl bg-brand-500 px-5 py-3.5 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
           >
             {busy === 'start' ? 'Starting…' : 'Start job'}
           </button>
@@ -130,7 +134,7 @@ function WorkerJobDetail() {
             type="button"
             disabled={busy !== null}
             onClick={run('complete', () => complete({ requestId: id }))}
-            className="rounded-2xl bg-status-completed px-5 py-3 font-semibold text-base text-white hover:opacity-90 disabled:opacity-60"
+            className="min-h-12 rounded-2xl bg-status-completed px-5 py-3.5 font-semibold text-base text-white hover:opacity-90 disabled:opacity-60"
           >
             {busy === 'complete' ? 'Completing…' : 'Mark complete'}
           </button>

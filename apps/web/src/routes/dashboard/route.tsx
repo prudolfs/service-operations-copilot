@@ -39,7 +39,7 @@ function DashboardLayout() {
     <VoiceProvider>
       <div className="min-h-screen bg-surface-0 md:pl-64">
         <Sidebar items={nav} eyebrow={eyebrow} />
-        <main className="pb-20 md:pb-0">
+        <main className="pt-safe pb-24 md:pb-0">
           <InstallBanner />
           <Outlet />
         </main>

@@ -2,6 +2,7 @@
 
 @import "@service-ops/shared/styles/theme.css";
 @import "@service-ops/shared/styles/glass.css";
+@import "@service-ops/shared/styles/safe-area.css";
 
 html,
 body,

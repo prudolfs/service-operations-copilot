@@ -57,8 +57,10 @@ export const computeOverviewFor = async (
     (r) => r.updatedAt >= startOfToday,
   ).length
 
-  // "Needs attention" = unassigned-open requests, oldest first (most aged).
-  const needsAttention = [...open]
+  // "Needs attention" = unassigned-open requests older than 24h, oldest first.
+  const STALE_AFTER_MS = 24 * 60 * 60 * 1000
+  const needsAttention = open
+    .filter((r) => !r.assignedWorkerId && now - r.createdAt >= STALE_AFTER_MS)
     .sort((a, b) => a.createdAt - b.createdAt)
     .slice(0, 10)
 
