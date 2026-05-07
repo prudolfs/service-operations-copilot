@@ -9,3 +9,6 @@ node_modules/
 .env.local
 .env.*.local
 *.log
+
+# Service worker is generated at build time from sw-template.js
+public/sw.js

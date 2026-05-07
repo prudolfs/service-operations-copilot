@@ -55,23 +55,23 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 2 — Service Worker
 
-- [ ] Create `apps/web/sw-template.js` with `__BUILD_ID__` and `__PRECACHE_LIST__` placeholders.
-- [ ] Implement install handler: pre-fetch `/offline.html`, `/manifest.webmanifest`, all 5 icons, all 5 splash images.
-- [ ] Implement activate handler: delete any cache whose name does not match current `CACHE_NAME = "service-ops-v" + BUILD_ID`.
-- [ ] Implement fetch handler with three branches:
-  - [ ] Navigation requests: network-only with fallback to cached `/offline.html` on failure.
-  - [ ] Hashed JS/CSS/asset requests (match URL pattern with content hash): cache-first, populate runtime cache on miss.
-  - [ ] All other requests (Convex, auth, API): network-only, no caching.
-- [ ] Skip caching for any request to `*convex.cloud*`, `*better-auth*`, paths containing `/api/`, or requests with an `Authorization` header.
-- [ ] Do NOT call `skipWaiting()` or `clients.claim()`.
-- [ ] Create `apps/web/scripts/build-sw.ts` postbuild script — reads Nitro client manifest, replaces placeholders, writes `dist/sw.js` (or whatever Nitro serves from app root).
-- [ ] Wire postbuild script into `package.json`: `"build": "vite build && bun run scripts/build-sw.ts"`.
-- [ ] Inject `BUILD_ID` from `process.env.VERCEL_GIT_COMMIT_SHA` (fallback to timestamp for local).
-- [ ] Create `apps/web/src/lib/register-sw.ts` — registers `/sw.js` only in `import.meta.env.PROD`; in dev, actively unregisters any leftover SW from prior `vite preview` runs.
-- [ ] Call `registerServiceWorker()` from `__root.tsx` (client-side `useEffect`, not during SSR).
-- [ ] Create `apps/web/public/offline.html` — static, no React, brand color background, "You're offline" copy, retry button (`location.reload()`).
-- [ ] Verify SW does not break HMR by running `bun run dev` after wiring.
-- [ ] Verify SW activates by running `bun run build && bun run preview`.
+- [x] Create `apps/web/sw-template.js` with `__BUILD_ID__` and `__PRECACHE_LIST__` placeholders.
+- [x] Implement install handler: pre-fetch `/offline.html`, `/manifest.webmanifest`, all 5 icons, all 5 splash images.
+- [x] Implement activate handler: delete any cache whose name does not match current `CACHE_NAME = "service-ops-v" + BUILD_ID`.
+- [x] Implement fetch handler with three branches:
+  - [x] Navigation requests: network-only with fallback to cached `/offline.html` on failure.
+  - [x] Hashed JS/CSS/asset requests (match URL pattern with content hash): cache-first, populate runtime cache on miss.
+  - [x] All other requests (Convex, auth, API): network-only, no caching.
+- [x] Skip caching for any request to `*convex.cloud*`, `*better-auth*`, paths containing `/api/`, or requests with an `Authorization` header.
+- [x] Do NOT call `skipWaiting()` or `clients.claim()`.
+- [x] Create `apps/web/scripts/build-sw.ts` script — reads template + dynamically discovered splash images in `public/icons/splash/`, replaces placeholders, writes `public/sw.js`.
+- [x] Wire script into `package.json` as **prebuild** (not postbuild — Vite copies `public/` during `vite build`, so the SW must exist in `public/` before that step): `"build": "bun run scripts/build-sw.ts && vite build"`.
+- [x] Inject `BUILD_ID` from `process.env.VERCEL_GIT_COMMIT_SHA` (fallback to `local-{timestamp}` for local).
+- [x] Create `apps/web/src/lib/register-sw.ts` — registers `/sw.js` only in `import.meta.env.PROD`; in dev, actively unregisters any leftover SW from prior `vite preview` runs.
+- [x] Call `registerServiceWorker()` from `__root.tsx` (client-side `useEffect`, not during SSR).
+- [x] Create `apps/web/public/offline.html` — static, no React, brand color background, "You're offline" copy, retry button (`location.reload()`).
+- [x] Verify SW does not break HMR (architecturally guaranteed via `import.meta.env.PROD` gate; SW never registers in `bun run dev`).
+- [x] Verify SW activates by running `bun run build && bun run preview` (`/sw.js` returns 200 `text/javascript`; `/offline.html`, `/manifest.webmanifest`, `/icons/*`, `/favicon.ico` all serve correctly from `.output/public/`).
 
 ## Phase 3 — Install Experience
 

@@ -5,9 +5,10 @@ import {
   Outlet,
   Scripts,
 } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { getConvexClient } from '@/lib/convex'
+import { registerServiceWorker } from '@/lib/register-sw'
 
 import appCss from '../styles.css?url'
 
@@ -70,6 +71,9 @@ function RootComponent() {
   // SSR breaks any route that calls `useQuery` at top level (e.g. /redirect,
   // the role layouts) because the hook then errors with "no Convex client".
   const convex = getConvexClient()
+  useEffect(() => {
+    registerServiceWorker()
+  }, [])
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
       <Outlet />
