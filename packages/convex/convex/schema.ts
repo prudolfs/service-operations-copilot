@@ -64,6 +64,25 @@ export default defineSchema({
   }).index('by_chat_room', ['chatRoomId', 'createdAt']),
 
   /**
+   * Phase 6 (PWA): one row per (user, browser/device) Web Push subscription.
+   * The `endpoint` is the subscription's globally unique URL — used as the
+   * primary upsert key. A user can have multiple rows when signed in across
+   * several devices; `sendPushToUser` fans out to all of them.
+   */
+  pushSubscriptions: defineTable({
+    userId: v.id('users'),
+    endpoint: v.string(),
+    keys: v.object({
+      p256dh: v.string(),
+      auth: v.string(),
+    }),
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_endpoint', ['endpoint']),
+
+  /**
    * Phase 6: streaming AI summaries. Each row is a single summarization run for
    * a service request. The action seeds the row with a statusLine, then
    * streams the markdown body in throttled patches; the mobile/web client

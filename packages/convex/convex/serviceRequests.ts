@@ -3,11 +3,18 @@ import {
   ServiceRequestStatusSchema,
 } from '@service-ops/shared'
 import { v } from 'convex/values'
+import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { ensureRoomForRequest } from './chat'
 import { requireAppUser } from './users'
+
+const labelForServiceType = (raw: string): string =>
+  raw
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim() || 'Service request'
 
 const StatusValidator = v.union(
   v.literal('OPEN'),
@@ -223,7 +230,18 @@ export const accept = mutation({
   args: { requestId: v.id('serviceRequests') },
   handler: async (ctx, { requestId }) => {
     const caller = await requireAppUser(ctx)
-    return acceptServiceRequestBy(ctx, requestId, caller)
+    const updated = await acceptServiceRequestBy(ctx, requestId, caller)
+    // Fail-soft push: client sees that a worker accepted their request.
+    // Scheduled rather than awaited at the helper layer so test code that
+    // drives the helper directly via `t.run` stays free of scheduler effects.
+    await ctx.scheduler.runAfter(0, internal.pushSender.sendPushToUser, {
+      userId: updated.clientId,
+      title: 'Worker accepted your request',
+      body: `${labelForServiceType(updated.serviceType)} — ${caller.name ?? caller.email} is on it.`,
+      url: `/client/requests/${requestId}`,
+      tag: `request-${requestId}-accepted`,
+    })
+    return updated
   },
 })
 
@@ -239,7 +257,16 @@ export const complete = mutation({
   args: { requestId: v.id('serviceRequests') },
   handler: async (ctx, { requestId }) => {
     const caller = await requireAppUser(ctx)
-    return completeServiceRequestBy(ctx, requestId, caller)
+    const updated = await completeServiceRequestBy(ctx, requestId, caller)
+    // Fail-soft push: client sees their request was completed.
+    await ctx.scheduler.runAfter(0, internal.pushSender.sendPushToUser, {
+      userId: updated.clientId,
+      title: 'Request completed',
+      body: `${labelForServiceType(updated.serviceType)} is done.`,
+      url: `/client/requests/${requestId}`,
+      tag: `request-${requestId}-completed`,
+    })
+    return updated
   },
 })
 
@@ -258,7 +285,21 @@ export const assignWorker = mutation({
   },
   handler: async (ctx, { requestId, workerId }) => {
     const caller = await requireAppUser(ctx)
-    return assignWorkerByManager(ctx, requestId, workerId, caller)
+    const updated = await assignWorkerByManager(
+      ctx,
+      requestId,
+      workerId,
+      caller,
+    )
+    // Fail-soft push: worker sees they were assigned.
+    await ctx.scheduler.runAfter(0, internal.pushSender.sendPushToUser, {
+      userId: workerId,
+      title: 'New job assigned to you',
+      body: `${labelForServiceType(updated.serviceType)} — ${updated.date} at ${updated.time}.`,
+      url: `/dashboard/jobs/${requestId}`,
+      tag: `request-${requestId}-assigned`,
+    })
+    return updated
   },
 })
 

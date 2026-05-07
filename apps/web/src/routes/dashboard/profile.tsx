@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { GlassCard } from '@/components/glass'
 import { InstallSettingsRow } from '@/components/install/InstallSettingsRow'
+import { PushNotificationsRow } from '@/components/push-notifications-row'
 import { useAuth } from '@/lib/useAuth'
 
 export const Route = createFileRoute('/dashboard/profile')({
@@ -54,6 +55,7 @@ function DashboardProfile() {
         <p className="mt-1 text-lg text-surface-text">{appUser?.role ?? '—'}</p>
 
         <InstallSettingsRow />
+        <PushNotificationsRow />
 
         <button
           type="button"

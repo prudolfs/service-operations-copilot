@@ -133,34 +133,34 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ### Provider + plumbing
 
-- [ ] Generate VAPID key pair, store private key in Convex env (`VAPID_PRIVATE_KEY`), public key as a public env var.
-- [ ] Add `web-push` package to `packages/convex` dependencies.
-- [ ] Add Convex schema table `pushSubscriptions` keyed by `userId` with fields: `endpoint`, `keys.p256dh`, `keys.auth`, `userAgent`, `createdAt`.
-- [ ] Add `convex/pushSubscriptions.ts` mutations: `subscribe`, `unsubscribe`, `listForUser`.
-- [ ] Add `convex/pushSubscriptions.ts` action `sendPushToUser(userId, payload)` — fans out to all subscriptions for the user, removes 410-Gone subscriptions automatically.
-- [ ] Wire `sendPushToUser` calls from existing mutations:
-  - [ ] `requests.assignWorker` → push to assigned worker.
-  - [ ] `requests.acceptByWorker` → push to client.
-  - [ ] `requests.markCompleted` → push to client.
-- [ ] Make push sends fail-soft — do not fail the parent mutation if push delivery fails.
+- [x] Generate VAPID key pair, store private key in Convex env (`VAPID_PRIVATE_KEY`), public key as a public env var. Documented in `packages/convex/.env.example` (`VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`) and `apps/web/.env.example` (`VITE_VAPID_PUBLIC_KEY`); generated locally with `bunx web-push generate-vapid-keys` and synced to Convex via `bunx convex env set`.
+- [x] Add `web-push` package to `packages/convex` dependencies (plus `@types/web-push` as devDep).
+- [x] Add Convex schema table `pushSubscriptions` keyed by `userId` with fields: `endpoint`, `keys.p256dh`, `keys.auth`, `userAgent`, `createdAt` — indexed by `by_user` and `by_endpoint`.
+- [x] Add `convex/pushSubscriptions.ts` mutations: `subscribe`, `unsubscribe` (public), `listForUser` (internal query), plus `deleteByEndpoint` (internal mutation) used by the push action for 410/404 cleanup.
+- [x] Add `convex/pushSender.ts` (`'use node'`) action `sendPushToUser({ userId, title, body, url, tag })` — fans out via `web-push`, removes 404/410-Gone subscriptions automatically, logs and swallows other failures.
+- [x] Wire `sendPushToUser` calls from existing mutations:
+  - [x] `serviceRequests.assignWorker` → push to assigned worker (title "New job assigned to you", url `/dashboard/jobs/{id}`).
+  - [x] `serviceRequests.accept` → push to client (title "Worker accepted your request", url `/client/requests/{id}`).
+  - [x] `serviceRequests.complete` → push to client (title "Request completed", url `/client/requests/{id}`).
+- [x] Make push sends fail-soft — scheduled via `ctx.scheduler.runAfter(0, internal.pushSender.sendPushToUser, …)` from the public mutation layer (not the pure helpers, so unit tests stay free of scheduler effects), and the action itself catches per-subscription send failures.
 
 ### Client-side
 
-- [ ] Create `apps/web/src/lib/use-push-subscription.ts` — reads current `Notification.permission`, exposes `{ status, request, unsubscribe }` where `status` is one of `default | granted | denied | dismissed | unsupported`.
-- [ ] Detect Web Push support: bail with `unsupported` on Safari < 16.4 or non-installed iOS Safari.
-- [ ] On grant, call `pushManager.subscribe()` with the VAPID public key, send subscription to Convex `subscribe` mutation.
-- [ ] On `unsubscribe`, call `subscription.unsubscribe()` and Convex `unsubscribe` mutation.
-- [ ] Create `apps/web/src/components/push-permission-banner.tsx` — handles all five permission states with appropriate copy.
-- [ ] Mount push permission banner on `/dashboard/jobs` (worker), persistent until granted/dismissed.
-- [ ] Show post-first-request push permission CTA on `/client` alongside the install prompt.
-- [ ] Surface iOS limitation copy: "Notifications on iPhone require iOS 16.4+ and the installed app."
-- [ ] Add "Notifications" toggle in profile settings — calls `request` or `unsubscribe`.
+- [x] Create `apps/web/src/lib/use-push-subscription.ts` — reads current `Notification.permission`, exposes `{ status, isIOSPwaUnsupported, request, unsubscribe }` where `status` is one of `default | granted | denied | dismissed | unsupported`.
+- [x] Detect Web Push support: bail with `unsupported` on browsers missing `serviceWorker` / `PushManager` / `Notification` (covers Safari < 16.4 and non-installed iOS Safari, with the dedicated `isIOSPwaUnsupported` flag for tailored copy).
+- [x] On grant, call `pushManager.subscribe()` with the VAPID public key (decoded base64-url → ArrayBuffer), then send subscription endpoint + keys to Convex `pushSubscriptions.subscribe`.
+- [x] On `unsubscribe`, call `subscription.unsubscribe()` and Convex `pushSubscriptions.unsubscribe`.
+- [x] Create `apps/web/src/components/push-permission-banner.tsx` — handles all five permission states (`default`, `granted`, `denied`, `dismissed`, `unsupported`) with appropriate copy and inline/card variants.
+- [x] Mount push permission banner on `/dashboard/jobs` (worker, `card` variant) — persistent until granted or per-session dismissed.
+- [x] Show post-first-request push permission CTA on `/client` (only after the client has at least one request) alongside the install prompt.
+- [x] Surface iOS limitation copy: "Notifications on iPhone require iOS 16.4+ and the installed app." — used in the banner when `isIOSPwaUnsupported` is true and in the profile row.
+- [x] Add "Notifications" toggle in profile settings — `apps/web/src/components/push-notifications-row.tsx` mounted in both `client/profile.tsx` and `dashboard/profile.tsx`; calls `request` / `unsubscribe`.
 
 ### Service worker push handlers
 
-- [ ] Add `push` event handler to `sw-template.js`: parse JSON payload, call `self.registration.showNotification(title, options)`.
-- [ ] Add `notificationclick` handler: open or focus the relevant route (`/client/requests/$id` or `/dashboard/jobs/$id`).
-- [ ] Notification payload shape: `{ title, body, url, tag }` where `tag` deduplicates rapid duplicates.
+- [x] Add `push` event handler to `sw-template.js`: parses JSON payload (with text fallback) and calls `self.registration.showNotification(title, options)` with the icon and badge set to `/icons/icon-192.png`.
+- [x] Add `notificationclick` handler: closes the notification, focuses an existing same-origin window (navigating it to the payload `url`) or opens a new window via `clients.openWindow`.
+- [x] Notification payload shape: `{ title, body, url, tag }` — `tag` is set on every send (e.g. `request-{id}-accepted`) so rapid duplicates collapse.
 
 ## Phase 7 — iOS Quality
 

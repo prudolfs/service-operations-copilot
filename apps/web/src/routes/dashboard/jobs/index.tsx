@@ -3,6 +3,7 @@ import type { Doc } from '@service-ops/convex/dataModel'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { GlassCard } from '@/components/glass'
+import { PushPermissionBanner } from '@/components/push-permission-banner'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
 
@@ -24,6 +25,10 @@ function WorkerJobsList() {
           Your work
         </h1>
       </header>
+
+      <div className="mt-6">
+        <PushPermissionBanner variant="card" />
+      </div>
 
       <Section title="My jobs" jobs={mine} emptyHint="No active assignments." />
       <Section

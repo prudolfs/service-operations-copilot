@@ -82,3 +82,57 @@ self.addEventListener('fetch', (event) => {
 
   // default: pass through (network-only, no caching)
 })
+
+// ────────────────────────────────────────────────────────────────────────────
+// Web Push (Phase 6, bracket 1) — three notification types only:
+//   - worker assigned (→ /dashboard/jobs/{id})
+//   - client: worker accepted (→ /client/requests/{id})
+//   - client: request completed (→ /client/requests/{id})
+// Payload shape: { title, body, url, tag }
+// ────────────────────────────────────────────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  /** @type {{ title?: string; body?: string; url?: string; tag?: string }} */
+  let data = {}
+  if (event.data) {
+    try {
+      data = event.data.json()
+    } catch {
+      data = { body: event.data.text() }
+    }
+  }
+  const title = data.title || 'Service Ops'
+  const options = {
+    body: data.body || '',
+    tag: data.tag,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url: data.url || '/' },
+  }
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = (event.notification.data && event.notification.data.url) || '/'
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+        for (const client of windowClients) {
+          try {
+            const clientUrl = new URL(client.url)
+            if (
+              clientUrl.origin === self.location.origin &&
+              'focus' in client
+            ) {
+              if ('navigate' in client) client.navigate(target)
+              return client.focus()
+            }
+          } catch {}
+        }
+        if (self.clients.openWindow) return self.clients.openWindow(target)
+        return undefined
+      }),
+  )
+})

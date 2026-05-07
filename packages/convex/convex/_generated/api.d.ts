@@ -17,6 +17,8 @@ import type * as auth from "../auth.js";
 import type * as chat from "../chat.js";
 import type * as http from "../http.js";
 import type * as manager from "../manager.js";
+import type * as pushSender from "../pushSender.js";
+import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as seed from "../seed.js";
 import type * as serviceRequests from "../serviceRequests.js";
 import type * as users from "../users.js";
@@ -37,6 +39,8 @@ declare const fullApi: ApiFromModules<{
   chat: typeof chat;
   http: typeof http;
   manager: typeof manager;
+  pushSender: typeof pushSender;
+  pushSubscriptions: typeof pushSubscriptions;
   seed: typeof seed;
   serviceRequests: typeof serviceRequests;
   users: typeof users;
