@@ -341,26 +341,26 @@ AI never silently submits, sends, or assigns. User confirms every action.
 
 ### `apps/web` (build out from Phase 0 stub)
 
-- [ ] Configure TanStack Router file-based routes:
+- [x] Configure TanStack Router file-based routes:
   - `/` (welcome / marketing)
   - `/login`, `/register`
   - `/client/*` (mirrors mobile client tabs)
   - `/dashboard/*` (worker + manager)
-- [ ] Add ConvexProvider + Better Auth web client to `__root.tsx`
-- [ ] Implement same auth screens with Better Auth web SDK (Google + GitHub + email/password)
-- [ ] Implement role redirect: after `ensureAppUser`, route by role (client → `/client`, worker → `/dashboard/jobs`, manager → `/dashboard`)
-- [ ] Build static `GlassCard`, `GlassSurface` components in `src/components/glass/` using Tailwind 4 + `backdrop-blur` (no motion)
-- [ ] Port client request flow: `/client/requests`, `/client/requests/new`, `/client/requests/$requestId`
-- [ ] Port worker job flow: `/dashboard/jobs`, `/dashboard/jobs/$jobId`
-- [ ] Port chat: `/client/messages`, `/dashboard/messages`, `[chatRoomId]`
-- [ ] Build manager dashboard layout: sidebar nav (Overview / Requests / Workers / Messages / Profile), multi-pane on `lg:` breakpoint
-- [ ] Manager web routes: `/dashboard`, `/dashboard/requests`, `/dashboard/workers`, `/dashboard/workers/$workerId`
-- [ ] Voice: browser MediaRecorder → upload to Convex storage → reuse `ai.askAnything` action
-- [ ] Reply suggestions UI in web chat composer
-- [ ] Streamed summary in web manager request detail
-- [ ] Responsive: client/worker views work on tablet; manager views target desktop
-- [ ] Validate Vercel deployment: `vercel deploy` from `apps/web`, env vars threaded through
-- [ ] Verify Convex websocket works through Vercel CDN (no caching issues)
+- [x] Add ConvexProvider + Better Auth web client to `__root.tsx`
+- [x] Implement same auth screens with Better Auth web SDK (Google + GitHub + email/password)
+- [x] Implement role redirect: after `ensureAppUser`, route by role (client → `/client`, worker → `/dashboard/jobs`, manager → `/dashboard`)
+- [x] Build static `GlassCard`, `GlassSurface` components in `src/components/glass/` using Tailwind 4 + `backdrop-blur` (no motion)
+- [x] Port client request flow: `/client/requests`, `/client/requests/new`, `/client/requests/$requestId`
+- [x] Port worker job flow: `/dashboard/jobs`, `/dashboard/jobs/$jobId`
+- [x] Port chat: `/client/messages`, `/dashboard/messages`, `[chatRoomId]`
+- [x] Build manager dashboard layout: sidebar nav (Overview / Requests / Workers / Messages / Profile), multi-pane on `lg:` breakpoint
+- [x] Manager web routes: `/dashboard`, `/dashboard/requests`, `/dashboard/workers`, `/dashboard/workers/$workerId`
+- [x] Voice: browser MediaRecorder → upload to Convex storage → reuse `ai.askAnything` action
+- [x] Reply suggestions UI in web chat composer
+- [x] Streamed summary in web manager request detail
+- [x] Responsive: client/worker views work on tablet; manager views target desktop
+- [x] Validate Vercel deployment: `vercel deploy` from `apps/web`, env vars threaded through
+- [x] Verify Convex websocket works through Vercel CDN (no caching issues)
 
 ---
 

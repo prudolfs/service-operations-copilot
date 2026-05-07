@@ -3,6 +3,16 @@
 @import "@service-ops/shared/styles/theme.css";
 @import "@service-ops/shared/styles/glass.css";
 
+html,
+body,
+#root {
+  /* Without these, `h-screen` on a flex child can mis-resolve to the parent's
+   * intrinsic content height instead of 100vh — which made the sidebar wrap
+   * tightly around its content instead of filling the viewport. */
+  height: 100%;
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   font-family:
