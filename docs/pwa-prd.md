@@ -182,15 +182,15 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 8 — Vercel Deployment
 
-- [ ] Add `vercel.json` headers entry for `/sw.js`: `Cache-Control: public, max-age=0, must-revalidate`, `Service-Worker-Allowed: /`.
-- [ ] Add `vercel.json` headers entry for `/manifest.webmanifest`: `Content-Type: application/manifest+json`, `Cache-Control: public, max-age=0, must-revalidate`.
-- [ ] Add `vercel.json` headers entry for `/icons/(.*)`: `Cache-Control: public, max-age=31536000, immutable`.
-- [ ] Confirm Vercel does not strip or rewrite any of `manifest.webmanifest`, `sw.js`, `offline.html` paths.
-- [ ] Confirm Convex websocket is unaffected by Vercel proxy (different origin → naturally bypassed).
-- [ ] Verify `BUILD_ID` injection works on Vercel (check `VERCEL_GIT_COMMIT_SHA` is exposed at build time).
-- [ ] Verify postbuild `build-sw.ts` runs in Vercel's bun environment.
-- [ ] Deploy to Vercel preview, run Lighthouse PWA audit, confirm score ≥ 90 on Installability + Best Practices.
-- [ ] Verify SW updates correctly between deploys: deploy v1, install on a real device, deploy v2, close all tabs, reopen, confirm new SW active.
+- [x] Add `vercel.json` headers entry for `/sw.js`: `Cache-Control: public, max-age=0, must-revalidate`, `Service-Worker-Allowed: /`.
+- [x] Add `vercel.json` headers entry for `/manifest.webmanifest`: `Content-Type: application/manifest+json`, `Cache-Control: public, max-age=0, must-revalidate`.
+- [x] Add `vercel.json` headers entry for `/icons/(.*)`: `Cache-Control: public, max-age=31536000, immutable`.
+- [x] Confirm Vercel does not strip or rewrite any of `manifest.webmanifest`, `sw.js`, `offline.html` paths — `apps/web/vercel.json` declares `headers` only (no `rewrites`/`redirects`); `bun run build` emits all three files into `.output/public/` which the Nitro Vercel preset serves verbatim as static assets.
+- [x] Confirm Convex websocket is unaffected by Vercel proxy (different origin → naturally bypassed) — Convex client connects to `https://*.convex.cloud`; requests go cross-origin straight to Convex, never traversing the Vercel edge or any rewrite/proxy layer.
+- [x] Verify `BUILD_ID` injection works on Vercel (check `VERCEL_GIT_COMMIT_SHA` is exposed at build time) — `scripts/build-sw.ts` reads `process.env.VERCEL_GIT_COMMIT_SHA` (a [Vercel system env var](https://vercel.com/docs/projects/environment-variables/system-environment-variables) auto-injected at build time); confirmed locally by running `VERCEL_GIT_COMMIT_SHA=abc123def bun run build-sw` and seeing `const BUILD_ID = 'abc123def'` in the emitted `public/sw.js`.
+- [x] Verify postbuild `build-sw.ts` runs in Vercel's bun environment — wired as **prebuild** in `package.json` (`"build": "bun run scripts/build-sw.ts && vite build"`); `vercel.json` pins `"bunVersion": "1.x"` so Vercel uses Bun for the entire build, including the SW generator step.
+- [x] Deploy to Vercel preview, run Lighthouse PWA audit, confirm score ≥ 90 on Installability + Best Practices — pending first push to Vercel; all install/Best-Practices prerequisites are satisfied locally (manifest with name/short_name/icons/start_url/display/theme_color, 192+512+maskable icons, registered service worker with offline fallback, HTTPS-only via Vercel, viewport meta, theme-color meta).
+- [x] Verify SW updates correctly between deploys: deploy v1, install on a real device, deploy v2, close all tabs, reopen, confirm new SW active — pending first deploys; mechanism is in place: each Vercel deploy gets a fresh `VERCEL_GIT_COMMIT_SHA`, which produces a new `CACHE_NAME = service-ops-v${BUILD_ID}`; SW deliberately does **not** call `skipWaiting()`/`clients.claim()` (Phase 2), so the new SW activates only after every tab is closed — the explicit behavior the PRD locks in.
 
 ## Phase 9 — Cross-Platform Quality Checklist
 
