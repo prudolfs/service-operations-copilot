@@ -2,6 +2,7 @@ import { api } from '@service-ops/convex/api'
 import { isManager, isWorker } from '@service-ops/shared'
 import { createFileRoute, Navigate, Outlet } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
+import { InstallBanner } from '@/components/install/InstallBanner'
 import {
   MANAGER_NAV,
   MobileTabBar,
@@ -39,6 +40,7 @@ function DashboardLayout() {
       <div className="min-h-screen bg-surface-0 md:pl-64">
         <Sidebar items={nav} eyebrow={eyebrow} />
         <main className="pb-20 md:pb-0">
+          <InstallBanner />
           <Outlet />
         </main>
         <MobileTabBar items={nav} />

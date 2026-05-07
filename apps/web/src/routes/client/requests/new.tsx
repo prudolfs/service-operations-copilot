@@ -10,8 +10,10 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { GlassCard, GlassInput } from '@/components/glass'
+import { InstallPromptModal } from '@/components/install/InstallPromptModal'
 import { useVoiceContext } from '@/components/voice/VoiceContext'
 import { SERVICE_TYPE_OPTIONS } from '@/lib/format'
+import { usePwaInstall } from '@/lib/use-pwa-install'
 
 const SearchSchema = z.object({
   serviceType: z.string().optional(),
@@ -30,7 +32,9 @@ function NewRequestPage() {
   const create = useMutation(api.serviceRequests.create)
   const search = Route.useSearch()
   const [error, setError] = useState<string | null>(null)
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
   const { setContext } = useVoiceContext()
+  const install = usePwaInstall()
 
   const form = useForm<CreateServiceRequestInput>({
     resolver: zodResolver(CreateServiceRequestSchema),
@@ -53,6 +57,15 @@ function NewRequestPage() {
     return () => setContext({})
   }, [setContext])
 
+  const shouldShowInstall = !install.isInstalled && !install.isDismissed
+
+  const goToDetail = async (id: string) => {
+    await navigate({
+      to: '/client/requests/$requestId',
+      params: { requestId: id },
+    })
+  }
+
   const onSubmit = form.handleSubmit(async (values) => {
     setError(null)
     try {
@@ -62,14 +75,21 @@ function NewRequestPage() {
         time: values.time,
         notes: values.notes?.trim() || undefined,
       })
-      await navigate({
-        to: '/client/requests/$requestId',
-        params: { requestId: id },
-      })
+      if (shouldShowInstall) {
+        setPendingRequestId(id)
+      } else {
+        await goToDetail(id)
+      }
     } catch (err) {
       setError((err as Error).message)
     }
   })
+
+  const onInstallClose = () => {
+    const id = pendingRequestId
+    setPendingRequestId(null)
+    if (id) void goToDetail(id)
+  }
 
   return (
     <div className="px-6 py-10 lg:px-12">
@@ -179,6 +199,11 @@ function NewRequestPage() {
           </button>
         </form>
       </GlassCard>
+
+      <InstallPromptModal
+        open={pendingRequestId !== null}
+        onClose={onInstallClose}
+      />
     </div>
   )
 }

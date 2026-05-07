@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { GlassCard } from '@/components/glass'
+import { InstallSettingsRow } from '@/components/install/InstallSettingsRow'
 import { useAuth } from '@/lib/useAuth'
 
 export const Route = createFileRoute('/dashboard/profile')({
@@ -51,6 +52,8 @@ function DashboardProfile() {
           Role
         </p>
         <p className="mt-1 text-lg text-surface-text">{appUser?.role ?? '—'}</p>
+
+        <InstallSettingsRow />
 
         <button
           type="button"

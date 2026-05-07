@@ -75,19 +75,19 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 3 — Install Experience
 
-- [ ] Create `apps/web/src/lib/use-pwa-install.ts` — captures `beforeinstallprompt`, exposes `{ canInstall, promptInstall, isInstalled }`.
-- [ ] Detect installed state via `window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true`.
-- [ ] Detect iOS Safari via UA + `'standalone' in navigator` to decide between `prompt()` flow and "Add to Home Screen" instructions.
-- [ ] Suppress all install UI when `isInstalled === true`.
-- [ ] Create `apps/web/src/components/install-prompt-modal.tsx` for clients — fired post first request submission.
-- [ ] Create `apps/web/src/components/install-banner.tsx` for managers and workers — small inline banner near top of dashboard, dismissable.
-- [ ] Create `apps/web/src/components/ios-install-instructions.tsx` — modal showing iOS share-icon glyph + "Tap Share → Add to Home Screen" copy.
-- [ ] On client first-request-submit success, show `install-prompt-modal` (Android/desktop) or `ios-install-instructions` (iOS).
-- [ ] On manager dashboard, mount `install-banner` until dismissed or installed.
-- [ ] On worker dashboard, mount `install-banner` until dismissed or installed (no native-app CTA in v1).
-- [ ] Persist dismissal in `localStorage` under key `pwa-install-dismissed-v1`.
-- [ ] Add "Install app" entry in profile settings page that re-opens the install flow regardless of dismissal.
-- [ ] Do not auto-re-prompt after dismissal in v1.
+- [x] Create `apps/web/src/lib/use-pwa-install.ts` — captures `beforeinstallprompt`, exposes `{ canInstall, isInstalled, isIOS, isDismissed, promptInstall, dismiss, reset }`.
+- [x] Detect installed state via `window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true`; also listens to `appinstalled` and the standalone `MediaQueryList` change events.
+- [x] Detect iOS Safari via UA + iPadOS desktop-mode heuristic (`Macintosh` UA + `maxTouchPoints > 1`); used to swap `prompt()` flow for the "Add to Home Screen" instructions.
+- [x] Suppress all install UI when `isInstalled === true` (banner, modal, settings row all gate on this).
+- [x] Create `apps/web/src/components/install/InstallPromptModal.tsx` for clients — fired post first request submission, navigates to detail page after dismiss/install.
+- [x] Create `apps/web/src/components/install/InstallBanner.tsx` for managers and workers — slim banner near top of dashboard, dismissable; only renders when `canInstall` (Android) or `isIOS` (iOS) and not dismissed/installed.
+- [x] Create `apps/web/src/components/install/IosInstallInstructions.tsx` — modal showing iOS share-icon glyph + numbered "Tap Share → Add to Home Screen" steps.
+- [x] On client first-request-submit success, show `InstallPromptModal` (Android/desktop calls `promptInstall()`; iOS opens `IosInstallInstructions` from inside the modal).
+- [x] On manager dashboard, mount `InstallBanner` in `dashboard/route.tsx` (covers manager surface).
+- [x] On worker dashboard, mount `InstallBanner` in `dashboard/route.tsx` (covers worker surface — same layout; no native-app CTA in v1).
+- [x] Persist dismissal in `localStorage` under key `pwa-install-dismissed-v1`.
+- [x] Add `InstallSettingsRow` to both `client/profile.tsx` and `dashboard/profile.tsx` — bypasses dismissal state, shows "App installed" indicator when standalone.
+- [x] Do not auto-re-prompt after dismissal in v1 (no time-based reset; only manual via profile settings).
 
 ## Phase 4 — Role-Based PWA UX
 
