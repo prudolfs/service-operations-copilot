@@ -2,6 +2,7 @@ import { api } from '@service-ops/convex/api'
 import { isClient } from '@service-ops/shared'
 import { createFileRoute, Navigate, Outlet } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
+import { OfflineBanner } from '@/components/offline-banner'
 import { CLIENT_NAV, MobileTabBar, Sidebar } from '@/components/Sidebar'
 import { MicButton } from '@/components/voice/MicButton'
 import { VoiceProvider } from '@/components/voice/VoiceContext'
@@ -28,6 +29,7 @@ function ClientLayout() {
       <div className="min-h-screen bg-surface-0 md:pl-64">
         <Sidebar items={CLIENT_NAV} eyebrow="Client" />
         <main className="pt-safe pb-24 md:pb-0">
+          <OfflineBanner />
           <Outlet />
         </main>
         <MobileTabBar items={CLIENT_NAV} />

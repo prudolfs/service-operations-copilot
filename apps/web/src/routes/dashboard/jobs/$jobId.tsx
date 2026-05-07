@@ -8,6 +8,7 @@ import { GlassCard } from '@/components/glass'
 import { RequestStatusTimeline } from '@/components/RequestStatusTimeline'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatDateTime, formatServiceType } from '@/lib/format'
+import { useIsOnline } from '@/lib/use-is-online'
 
 export const Route = createFileRoute('/dashboard/jobs/$jobId')({
   component: WorkerJobDetail,
@@ -26,6 +27,7 @@ function WorkerJobDetail() {
   const complete = useMutation(api.serviceRequests.complete)
   const [busy, setBusy] = useState<Action>(null)
   const [error, setError] = useState<string | null>(null)
+  const isOnline = useIsOnline()
 
   if (data === undefined) {
     return <p className="px-6 py-10 text-surface-text-muted">Loading…</p>
@@ -112,7 +114,7 @@ function WorkerJobDetail() {
         {request.status === 'OPEN' ? (
           <button
             type="button"
-            disabled={busy !== null}
+            disabled={busy !== null || !isOnline}
             onClick={run('accept', () => accept({ requestId: id }))}
             className="min-h-12 rounded-2xl bg-brand-500 px-5 py-3.5 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
           >
@@ -122,7 +124,7 @@ function WorkerJobDetail() {
         {request.status === 'ASSIGNED' ? (
           <button
             type="button"
-            disabled={busy !== null}
+            disabled={busy !== null || !isOnline}
             onClick={run('start', () => start({ requestId: id }))}
             className="min-h-12 rounded-2xl bg-brand-500 px-5 py-3.5 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
           >
@@ -132,12 +134,20 @@ function WorkerJobDetail() {
         {request.status === 'IN_PROGRESS' ? (
           <button
             type="button"
-            disabled={busy !== null}
+            disabled={busy !== null || !isOnline}
             onClick={run('complete', () => complete({ requestId: id }))}
             className="min-h-12 rounded-2xl bg-status-completed px-5 py-3.5 font-semibold text-base text-white hover:opacity-90 disabled:opacity-60"
           >
             {busy === 'complete' ? 'Completing…' : 'Mark complete'}
           </button>
+        ) : null}
+        {!isOnline &&
+        (request.status === 'OPEN' ||
+          request.status === 'ASSIGNED' ||
+          request.status === 'IN_PROGRESS') ? (
+          <p className="text-sm text-surface-text-muted">
+            You're offline — reconnect to update this job.
+          </p>
         ) : null}
       </div>
     </div>

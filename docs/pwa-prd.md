@@ -119,15 +119,15 @@ Turn `apps/web` (TanStack Start + Nitro SSR) into an installable PWA covering al
 
 ## Phase 5 — Offline Behavior (in-session)
 
-- [ ] Create `apps/web/src/lib/use-is-online.ts` — combines `navigator.onLine`, `window` online/offline events, and Convex `client.connectionState()`. Treats `connecting` as online to avoid banner flapping.
-- [ ] Create `apps/web/src/components/offline-banner.tsx` — sticky top banner, dark surface, "You're offline. Reconnect to continue."
-- [ ] Mount `<OfflineBanner />` in `/client/route.tsx`, `/dashboard/route.tsx`.
-- [ ] Disable client request creation submit button when `!isOnline`.
-- [ ] Disable chat composer send button when `!isOnline`.
-- [ ] Disable worker lifecycle action buttons (accept/start/complete) when `!isOnline`.
-- [ ] Show inline "you're offline" hint near each disabled action.
-- [ ] Do NOT optimistically render submitted chat messages or created requests when offline.
-- [ ] On reconnect (Convex transitions to `connected`), auto-dismiss banner.
+- [x] Create `apps/web/src/lib/use-is-online.ts` — combines `navigator.onLine`, `window` online/offline events, and Convex `client.connectionState()`. Treats `connecting` as online to avoid banner flapping (only flips offline once the websocket has actually connected before AND `connectionRetries >= 2`).
+- [x] Create `apps/web/src/components/offline-banner.tsx` — sticky top banner, dark surface, "You're offline. Reconnect to continue."
+- [x] Mount `<OfflineBanner />` in `/client/route.tsx`, `/dashboard/route.tsx`.
+- [x] Disable client request creation submit button when `!isOnline` (`/client/requests/new.tsx`; `onSubmit` also short-circuits before calling the mutation).
+- [x] Disable chat composer send button when `!isOnline` — `ChatRoom.tsx` send button + Enter handler both gated; `onSend` returns early.
+- [x] Disable worker lifecycle action buttons (accept/start/complete) when `!isOnline` — `/dashboard/jobs/$jobId.tsx`.
+- [x] Show inline "you're offline" hint near each disabled action — beneath the request submit button, above the chat composer, and below the worker lifecycle button.
+- [x] Do NOT optimistically render submitted chat messages or created requests when offline — `onSend` returns before pushing to the pending list; request submit is blocked at the form layer.
+- [x] On reconnect (Convex transitions to `connected`), auto-dismiss banner — `useIsOnline` re-subscribes via `subscribeToConnectionState`, so `OfflineBanner` returns null automatically when `isWebSocketConnected` flips back to true (and `navigator.onLine` is true).
 
 ## Phase 6 — Push Notifications (Bracket 1 Only)
 

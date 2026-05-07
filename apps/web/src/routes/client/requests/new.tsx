@@ -13,6 +13,7 @@ import { GlassCard, GlassInput } from '@/components/glass'
 import { InstallPromptModal } from '@/components/install/InstallPromptModal'
 import { useVoiceContext } from '@/components/voice/VoiceContext'
 import { SERVICE_TYPE_OPTIONS } from '@/lib/format'
+import { useIsOnline } from '@/lib/use-is-online'
 import { usePwaInstall } from '@/lib/use-pwa-install'
 
 const SearchSchema = z.object({
@@ -35,6 +36,7 @@ function NewRequestPage() {
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
   const { setContext } = useVoiceContext()
   const install = usePwaInstall()
+  const isOnline = useIsOnline()
 
   const form = useForm<CreateServiceRequestInput>({
     resolver: zodResolver(CreateServiceRequestSchema),
@@ -68,6 +70,7 @@ function NewRequestPage() {
 
   const onSubmit = form.handleSubmit(async (values) => {
     setError(null)
+    if (!isOnline) return
     try {
       const id = await create({
         serviceType: values.serviceType,
@@ -192,11 +195,16 @@ function NewRequestPage() {
 
           <button
             type="submit"
-            disabled={form.formState.isSubmitting}
+            disabled={form.formState.isSubmitting || !isOnline}
             className="mt-2 rounded-2xl bg-brand-500 px-5 py-3 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
           >
             {form.formState.isSubmitting ? 'Submitting…' : 'Submit request'}
           </button>
+          {!isOnline ? (
+            <p className="text-sm text-surface-text-muted">
+              You're offline — reconnect to submit this request.
+            </p>
+          ) : null}
         </form>
       </GlassCard>
 

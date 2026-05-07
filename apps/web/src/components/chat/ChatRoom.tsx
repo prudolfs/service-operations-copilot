@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { useVoiceContext } from '@/components/voice/VoiceContext'
 import { cn } from '@/lib/cn'
 import { formatServiceType, formatStamp } from '@/lib/format'
+import { useIsOnline } from '@/lib/use-is-online'
 
 type Message = Doc<'chatMessages'> & { sender: Doc<'users'> | null }
 type Pending = { key: string; text: string; createdAt: number }
@@ -40,6 +41,7 @@ export function ChatRoom({
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [showSuggestPanel, setShowSuggestPanel] = useState(false)
   const listEndRef = useRef<HTMLDivElement>(null)
+  const isOnline = useIsOnline()
 
   const { setContext } = useVoiceContext()
   useEffect(() => {
@@ -77,6 +79,7 @@ export function ChatRoom({
   const onSend = async () => {
     const text = draft.trim()
     if (!text || sending) return
+    if (!isOnline) return
     const key = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     setPending((prev) => [...prev, { key, text, createdAt: Date.now() }])
     setDraft('')
@@ -275,6 +278,12 @@ export function ChatRoom({
         </div>
       ) : null}
 
+      {!isOnline ? (
+        <p className="border-surface-3 border-t bg-surface-1 px-6 py-2 text-center text-sm text-surface-text-muted">
+          You're offline — messages can't be sent right now.
+        </p>
+      ) : null}
+
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -311,7 +320,7 @@ export function ChatRoom({
         />
         <button
           type="submit"
-          disabled={!draft.trim() || sending}
+          disabled={!draft.trim() || sending || !isOnline}
           className="rounded-2xl bg-brand-500 px-4 py-2 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
         >
           Send
