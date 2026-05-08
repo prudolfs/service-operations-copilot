@@ -18,7 +18,9 @@
     "dev": "convex dev",
     "deploy": "convex deploy",
     "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc -p convex/tsconfig.json --noEmit"
+    "typecheck": "tsc -p convex/tsconfig.json --noEmit",
+    "seed:wipe": "bun run scripts/wipe.ts",
+    "seed:populate": "bun run scripts/seed.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.75",
@@ -30,6 +32,7 @@
     "better-auth": "1.6.9",
     "convex": "^1.32.0",
     "convex-helpers": "^0.1.116",
+    "date-fns": "^4.1.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

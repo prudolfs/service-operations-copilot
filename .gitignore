@@ -28,6 +28,9 @@ coverage/
 .env.local
 .env.*.local
 
+# Local-only seed credentials (real test passwords live here)
+packages/convex/scripts/test-users.json
+
 # Editor / IDE
 .idea/
 .vscode/*

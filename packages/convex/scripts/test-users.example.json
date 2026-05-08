@@ -1,0 +1,27 @@
+[
+  {
+    "email": "client1@dev.local",
+    "password": "ChangeMe123!",
+    "role": "client"
+  },
+  {
+    "email": "client2@dev.local",
+    "password": "ChangeMe123!",
+    "role": "client"
+  },
+  {
+    "email": "worker1@dev.local",
+    "password": "ChangeMe123!",
+    "role": "worker"
+  },
+  {
+    "email": "worker2@dev.local",
+    "password": "ChangeMe123!",
+    "role": "worker"
+  },
+  {
+    "email": "manager1@dev.local",
+    "password": "ChangeMe123!",
+    "role": "manager"
+  }
+]

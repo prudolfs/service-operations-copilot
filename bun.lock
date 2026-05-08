@@ -111,6 +111,7 @@
         "better-auth": "1.6.9",
         "convex": "^1.32.0",
         "convex-helpers": "^0.1.116",
+        "date-fns": "^4.1.0",
         "web-push": "^3.6.7",
       },
       "devDependencies": {
