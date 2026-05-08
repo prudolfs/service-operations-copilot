@@ -6,7 +6,7 @@ import { v } from 'convex/values'
 import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
+import { internalQuery, mutation, query } from './_generated/server'
 import { ensureRoomForRequest } from './chat'
 import { requireAppUser } from './users'
 
@@ -398,6 +398,31 @@ export const getById = query({
     if (!canViewRequest(caller, req)) {
       throw new Error('Not authorized to view this request')
     }
+    const [client, assignedWorker] = await Promise.all([
+      ctx.db.get(req.clientId),
+      req.assignedWorkerId
+        ? ctx.db.get(req.assignedWorkerId)
+        : Promise.resolve(null),
+    ])
+    return { request: req, client, assignedWorker }
+  },
+})
+
+// Identity-less read for scheduled actions. The caller is responsible for
+// authorizing access *before* scheduling — this skips the requireAppUser /
+// canViewRequest checks that the public `getById` enforces.
+export const getByIdInternal = internalQuery({
+  args: { requestId: v.id('serviceRequests') },
+  handler: async (
+    ctx,
+    { requestId },
+  ): Promise<{
+    request: Doc<'serviceRequests'>
+    client: Doc<'users'> | null
+    assignedWorker: Doc<'users'> | null
+  } | null> => {
+    const req = await ctx.db.get(requestId)
+    if (!req) return null
     const [client, assignedWorker] = await Promise.all([
       ctx.db.get(req.clientId),
       req.assignedWorkerId

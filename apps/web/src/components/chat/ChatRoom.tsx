@@ -3,13 +3,16 @@ import type { Doc, Id } from '@service-ops/convex/dataModel'
 import type { ReplyTone } from '@service-ops/shared'
 import { useRouter } from '@tanstack/react-router'
 import { useAction, useMutation, useQuery } from 'convex/react'
-import { ArrowLeft, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Loader2, Mic, Sparkles, Square, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StatusBadge } from '@/components/StatusBadge'
+import { useRecorder } from '@/components/voice/useRecorder'
 import { useVoiceContext } from '@/components/voice/VoiceContext'
 import { cn } from '@/lib/cn'
 import { formatServiceType, formatStamp } from '@/lib/format'
 import { useIsOnline } from '@/lib/use-is-online'
+
+const MAX_RECORDING_MS = 30_000
 
 type Message = Doc<'chatMessages'> & { sender: Doc<'users'> | null }
 type Pending = { key: string; text: string; createdAt: number }
@@ -34,6 +37,8 @@ export function ChatRoom({
   const me = useQuery(api.users.currentAppUser)
   const send = useMutation(api.chat.sendMessage)
   const suggestReplies = useAction(api.ai.replySuggestions.suggestReplies)
+  const generateUploadUrl = useAction(api.ai.transcribe.generateUploadUrl)
+  const askAnything = useAction(api.ai.askAnything.askAnything)
 
   const [draft, setDraft] = useState(initialDraft ?? '')
   const [sending, setSending] = useState(false)
@@ -42,8 +47,13 @@ export function ChatRoom({
   const [suggesting, setSuggesting] = useState(false)
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [showSuggestPanel, setShowSuggestPanel] = useState(false)
+  const [voiceProcessing, setVoiceProcessing] = useState(false)
   const listEndRef = useRef<HTMLDivElement>(null)
+  const recordTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isOnline = useIsOnline()
+
+  const { isRecording, durationMs, startRecording, stopRecording } =
+    useRecorder()
 
   const { setContext } = useVoiceContext()
   useEffect(() => {
@@ -115,6 +125,66 @@ export function ChatRoom({
     } finally {
       setSuggesting(false)
     }
+  }
+
+  // Voice → draft_message in this chat. Press-and-hold the inline mic.
+  const sendVoiceClip = async (blob: Blob, mimeType: string) => {
+    setVoiceProcessing(true)
+    try {
+      const uploadUrl = await generateUploadUrl({})
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': mimeType },
+        body: blob,
+      })
+      if (!uploadRes.ok) throw new Error(`Upload failed (${uploadRes.status})`)
+      const { storageId } = (await uploadRes.json()) as {
+        storageId: Id<'_storage'>
+      }
+      const response = await askAnything({
+        audioStorageId: storageId,
+        context: {
+          screen: 'chat',
+          role: me?.role,
+          currentChatRoomId: chatRoomId,
+        },
+      })
+      // In-chat we always treat the result as a message draft. Even if the
+      // intent comes back as something else, surface the transcription so the
+      // user can edit and send.
+      if (response.intent === 'draft_message' && 'draftText' in response) {
+        setDraft(response.draftText)
+      } else if (response.intent === 'unknown') {
+        alert(response.message)
+      } else if ('transcription' in response && response.transcription) {
+        setDraft(response.transcription)
+      }
+    } catch (err) {
+      alert((err as Error).message)
+    } finally {
+      setVoiceProcessing(false)
+    }
+  }
+
+  const onMicPointerDown = async () => {
+    if (voiceProcessing || isRecording) return
+    const ok = await startRecording()
+    if (!ok) return
+    recordTimeoutRef.current = setTimeout(async () => {
+      recordTimeoutRef.current = null
+      const r = await stopRecording()
+      if (r) await sendVoiceClip(r.blob, r.mimeType)
+    }, MAX_RECORDING_MS)
+  }
+
+  const onMicPointerUp = async () => {
+    if (recordTimeoutRef.current) {
+      clearTimeout(recordTimeoutRef.current)
+      recordTimeoutRef.current = null
+    }
+    if (!isRecording) return
+    const r = await stopRecording()
+    if (r) await sendVoiceClip(r.blob, r.mimeType)
   }
 
   const otherName =
@@ -317,22 +387,73 @@ export function ChatRoom({
         >
           <Sparkles size={20} />
         </button>
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Message"
-          rows={1}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              void onSend()
-            }
-          }}
-          className="max-h-32 min-h-[40px] flex-1 resize-none rounded-2xl bg-surface-2 px-4 py-2 text-base text-surface-text outline-none placeholder:text-surface-text-muted"
-        />
+        {isRecording || voiceProcessing ? (
+          <div className="flex max-h-32 min-h-[40px] flex-1 items-center gap-2 rounded-2xl bg-surface-2 px-4 py-2 text-base">
+            {voiceProcessing ? (
+              <>
+                <Loader2
+                  size={16}
+                  className="animate-spin text-brand-300"
+                  aria-hidden="true"
+                />
+                <span className="text-surface-text-muted">Transcribing…</span>
+              </>
+            ) : (
+              <>
+                <span
+                  className="h-2 w-2 animate-pulse rounded-full bg-status-progress"
+                  aria-hidden="true"
+                />
+                <span className="text-surface-text-muted">
+                  Recording {Math.floor(durationMs / 1000)}s…
+                </span>
+              </>
+            )}
+          </div>
+        ) : (
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Message"
+            rows={1}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                void onSend()
+              }
+            }}
+            className="max-h-32 min-h-[40px] flex-1 resize-none rounded-2xl bg-surface-2 px-4 py-2 text-base text-surface-text outline-none placeholder:text-surface-text-muted"
+          />
+        )}
+        <button
+          type="button"
+          onPointerDown={onMicPointerDown}
+          onPointerUp={onMicPointerUp}
+          onPointerLeave={onMicPointerUp}
+          disabled={voiceProcessing}
+          aria-label={isRecording ? 'Release to send' : 'Hold to dictate'}
+          className={cn(
+            'flex h-10 w-10 items-center justify-center rounded-full',
+            isRecording
+              ? 'bg-status-progress text-white'
+              : 'text-surface-text-muted hover:bg-surface-2 disabled:opacity-50',
+          )}
+        >
+          {isRecording ? (
+            <Square size={18} fill="currentColor" />
+          ) : (
+            <Mic size={20} />
+          )}
+        </button>
         <button
           type="submit"
-          disabled={!draft.trim() || sending || !isOnline}
+          disabled={
+            !draft.trim() ||
+            sending ||
+            !isOnline ||
+            isRecording ||
+            voiceProcessing
+          }
           className="rounded-2xl bg-brand-500 px-4 py-2 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
         >
           Send

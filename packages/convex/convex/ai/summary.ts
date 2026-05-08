@@ -2,7 +2,12 @@ import { createGateway, generateObject, streamText } from 'ai'
 import { v } from 'convex/values'
 import { api, internal } from '../_generated/api'
 import type { Doc, Id } from '../_generated/dataModel'
-import { action, internalMutation, query } from '../_generated/server'
+import {
+  action,
+  internalAction,
+  internalMutation,
+  query,
+} from '../_generated/server'
 import { canViewRequest } from '../serviceRequests'
 import { requireAppUser } from '../users'
 import { StatusLineSchema } from './intents'
@@ -75,18 +80,22 @@ const fetchSummaryContext = async (
   ctx: import('../_generated/server').ActionCtx,
   requestId: Id<'serviceRequests'>,
 ): Promise<SummaryContext | null> => {
-  const requestData = await ctx.runQuery(api.serviceRequests.getById, {
-    requestId,
-  })
+  // Uses *Internal queries — scheduled actions run without an auth identity,
+  // so the public queries' requireAppUser checks would throw. The caller of
+  // summarizeRequest already authorized this request.
+  const requestData = await ctx.runQuery(
+    internal.serviceRequests.getByIdInternal,
+    { requestId },
+  )
   if (!requestData) return null
 
   // Try to fetch chat messages — may not exist yet if request is still OPEN.
   let messages: Array<{ senderName: string; text: string }> = []
-  const room = await ctx.runQuery(api.chat.getRoomForRequest, {
+  const room = await ctx.runQuery(internal.chat.getRoomForRequestInternal, {
     serviceRequestId: requestId,
   })
   if (room) {
-    const msgs = await ctx.runQuery(api.chat.getMessages, {
+    const msgs = await ctx.runQuery(internal.chat.getMessagesInternal, {
       chatRoomId: room._id,
       limit: 100,
     })
@@ -228,71 +237,82 @@ export const summarizeRequest = action({
       { serviceRequestId: requestId, requesterId: me._id },
     )
 
-    // Run the LLM work in the background — the client already has the streamId
-    // and is subscribed via useQuery. We don't await this so the caller gets
-    // an immediate response and starts polling.
-    void (async () => {
-      try {
-        const summaryCtx = await fetchSummaryContext(ctx, requestId)
-        if (!summaryCtx) {
-          await ctx.runMutation(internal.ai.summary.errorSummaryStream, {
-            streamId,
-            errorMessage: 'Request data is no longer available.',
-          })
-          return
-        }
-
-        const { object: statusObj } = await generateObject({
-          model: gateway(MODEL_ID),
-          schema: StatusLineSchema,
-          system: buildStatusLineSystem(summaryCtx),
-          prompt: 'Generate the one-line status summary now.',
-        })
-
-        await ctx.runMutation(internal.ai.summary.setSummaryStatusLine, {
-          streamId,
-          statusLine: statusObj.statusLine,
-        })
-
-        const result = streamText({
-          model: gateway(MODEL_ID),
-          system: buildDetailsSystem(summaryCtx, statusObj.statusLine),
-          prompt: 'Write the details now.',
-        })
-
-        let buffer = ''
-        let lastFlush = Date.now()
-        let pendingFlush: Promise<unknown> | null = null
-
-        for await (const chunk of result.textStream) {
-          buffer += chunk
-          if (Date.now() - lastFlush >= STREAM_FLUSH_MS) {
-            lastFlush = Date.now()
-            // Don't await — let the next chunks accumulate while the patch is
-            // in flight. We always finalize with the full buffer at the end.
-            pendingFlush = ctx.runMutation(
-              internal.ai.summary.appendSummaryDetails,
-              { streamId, details: buffer },
-            )
-          }
-        }
-        if (pendingFlush) {
-          await pendingFlush
-        }
-        await ctx.runMutation(internal.ai.summary.finalizeSummaryStream, {
-          streamId,
-          details: buffer,
-        })
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Unknown summarization error'
-        await ctx.runMutation(internal.ai.summary.errorSummaryStream, {
-          streamId,
-          errorMessage: message,
-        })
-      }
-    })()
+    // Hand off the LLM work to its own action invocation. A fire-and-forget
+    // IIFE inside this action would get torn down with the V8 sandbox the
+    // moment we return — leaving the row stuck at status='pending'.
+    await ctx.scheduler.runAfter(0, internal.ai.summary.runSummaryStream, {
+      streamId,
+      requestId,
+    })
 
     return { streamId }
+  },
+})
+
+export const runSummaryStream = internalAction({
+  args: {
+    streamId: v.id('summaryStreams'),
+    requestId: v.id('serviceRequests'),
+  },
+  handler: async (ctx, { streamId, requestId }) => {
+    try {
+      const summaryCtx = await fetchSummaryContext(ctx, requestId)
+      if (!summaryCtx) {
+        await ctx.runMutation(internal.ai.summary.errorSummaryStream, {
+          streamId,
+          errorMessage: 'Request data is no longer available.',
+        })
+        return
+      }
+
+      const { object: statusObj } = await generateObject({
+        model: gateway(MODEL_ID),
+        schema: StatusLineSchema,
+        system: buildStatusLineSystem(summaryCtx),
+        prompt: 'Generate the one-line status summary now.',
+      })
+
+      await ctx.runMutation(internal.ai.summary.setSummaryStatusLine, {
+        streamId,
+        statusLine: statusObj.statusLine,
+      })
+
+      const result = streamText({
+        model: gateway(MODEL_ID),
+        system: buildDetailsSystem(summaryCtx, statusObj.statusLine),
+        prompt: 'Write the details now.',
+      })
+
+      let buffer = ''
+      let lastFlush = Date.now()
+      let pendingFlush: Promise<unknown> | null = null
+
+      for await (const chunk of result.textStream) {
+        buffer += chunk
+        if (Date.now() - lastFlush >= STREAM_FLUSH_MS) {
+          lastFlush = Date.now()
+          // Don't await — let the next chunks accumulate while the patch is
+          // in flight. We always finalize with the full buffer at the end.
+          pendingFlush = ctx.runMutation(
+            internal.ai.summary.appendSummaryDetails,
+            { streamId, details: buffer },
+          )
+        }
+      }
+      if (pendingFlush) {
+        await pendingFlush
+      }
+      await ctx.runMutation(internal.ai.summary.finalizeSummaryStream, {
+        streamId,
+        details: buffer,
+      })
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Unknown summarization error'
+      await ctx.runMutation(internal.ai.summary.errorSummaryStream, {
+        streamId,
+        errorMessage: message,
+      })
+    }
   },
 })

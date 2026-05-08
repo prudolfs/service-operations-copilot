@@ -2,7 +2,7 @@ import { SendChatMessageSchema } from '@service-ops/shared'
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
-import { mutation, query } from './_generated/server'
+import { internalQuery, mutation, query } from './_generated/server'
 import { canViewRequest } from './serviceRequests'
 import { requireAppUser } from './users'
 
@@ -174,6 +174,51 @@ export const getMessages = query({
     await requireRoomAccess(ctx, caller, chatRoomId)
     const cap = Math.min(Math.max(limit ?? 100, 1), 100)
     // Take the most-recent N (descending), then flip to ascending for display.
+    const recent = await ctx.db
+      .query('chatMessages')
+      .withIndex('by_chat_room', (q) => q.eq('chatRoomId', chatRoomId))
+      .order('desc')
+      .take(cap)
+    const ordered = recent.reverse()
+    const senderIds = Array.from(new Set(ordered.map((m) => m.senderId)))
+    const senders = await Promise.all(senderIds.map((id) => ctx.db.get(id)))
+    const senderById = new Map<Id<'users'>, Doc<'users'> | null>()
+    senderIds.forEach((id, i) => {
+      senderById.set(id, senders[i] ?? null)
+    })
+    return ordered.map((m) => ({
+      ...m,
+      sender: senderById.get(m.senderId) ?? null,
+    }))
+  },
+})
+
+// Identity-less reads for scheduled actions. The caller is responsible for
+// authorizing access *before* scheduling — these skip the requireAppUser /
+// requireRoomAccess checks that the public queries enforce.
+
+export const getRoomForRequestInternal = internalQuery({
+  args: { serviceRequestId: v.id('serviceRequests') },
+  handler: async (
+    ctx,
+    { serviceRequestId },
+  ): Promise<Doc<'chatRooms'> | null> => {
+    return ctx.db
+      .query('chatRooms')
+      .withIndex('by_service_request', (q) =>
+        q.eq('serviceRequestId', serviceRequestId),
+      )
+      .unique()
+  },
+})
+
+export const getMessagesInternal = internalQuery({
+  args: {
+    chatRoomId: v.id('chatRooms'),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { chatRoomId, limit }): Promise<MessageWithSender[]> => {
+    const cap = Math.min(Math.max(limit ?? 100, 1), 100)
     const recent = await ctx.db
       .query('chatMessages')
       .withIndex('by_chat_room', (q) => q.eq('chatRoomId', chatRoomId))
