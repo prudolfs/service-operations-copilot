@@ -1,26 +1,40 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { api } from '@service-ops/convex/api'
 import {
   type CreateServiceRequestInput,
   CreateServiceRequestSchema,
+  NotesStepSchema,
+  ScheduleStepSchema,
+  type ServiceType,
+  ServiceTypeStepSchema,
 } from '@service-ops/shared'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
-import { GlassCard, GlassInput } from '@/components/glass'
 import { InstallPromptModal } from '@/components/install/InstallPromptModal'
 import { useVoiceContext } from '@/components/voice/VoiceContext'
-import { SERVICE_TYPE_OPTIONS } from '@/lib/format'
+import {
+  type StepDefinition,
+  useWizard,
+  WizardProvider,
+  WizardShell,
+} from '@/components/wizard'
 import { useIsOnline } from '@/lib/use-is-online'
 import { usePwaInstall } from '@/lib/use-pwa-install'
+import NotesStep from './-steps/NotesStep'
+import ReviewStep from './-steps/ReviewStep'
+import ScheduleStep from './-steps/ScheduleStep'
+import ServiceTypeStep from './-steps/ServiceTypeStep'
+
+const StepIdSchema = z.enum(['serviceType', 'schedule', 'notes', 'review'])
+type WizardStepId = z.infer<typeof StepIdSchema>
 
 const SearchSchema = z.object({
   serviceType: z.string().optional(),
   date: z.string().optional(),
   time: z.string().optional(),
   notes: z.string().optional(),
+  step: StepIdSchema.optional(),
 })
 
 export const Route = createFileRoute('/client/requests/new')({
@@ -28,36 +42,73 @@ export const Route = createFileRoute('/client/requests/new')({
   validateSearch: (search) => SearchSchema.parse(search),
 })
 
+const isServiceType = (value: string | undefined): value is ServiceType =>
+  value === 'cleaning' ||
+  value === 'maintenance' ||
+  value === 'delivery' ||
+  value === 'repair' ||
+  value === 'other'
+
+const steps: StepDefinition<CreateServiceRequestInput>[] = [
+  {
+    id: 'serviceType',
+    title: 'What do you need?',
+    fields: ['serviceType'],
+    schema: ServiceTypeStepSchema,
+    component: ServiceTypeStep,
+  },
+  {
+    id: 'schedule',
+    title: 'When do you need it?',
+    fields: ['date', 'time'],
+    schema: ScheduleStepSchema,
+    component: ScheduleStep,
+  },
+  {
+    id: 'notes',
+    title: 'Anything else?',
+    fields: ['notes'],
+    schema: NotesStepSchema,
+    component: NotesStep,
+  },
+  {
+    id: 'review',
+    title: 'Review your request',
+    fields: [],
+    schema: NotesStepSchema,
+    component: ReviewStep,
+  },
+]
+
+const defaultValues: CreateServiceRequestInput = {
+  serviceType: 'cleaning',
+  date: '',
+  time: '',
+  notes: '',
+}
+
 function NewRequestPage() {
   const navigate = useNavigate()
   const create = useMutation(api.serviceRequests.create)
   const search = Route.useSearch()
   const [error, setError] = useState<string | null>(null)
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
-  const { setContext } = useVoiceContext()
   const install = usePwaInstall()
   const isOnline = useIsOnline()
 
-  const form = useForm<CreateServiceRequestInput>({
-    resolver: zodResolver(CreateServiceRequestSchema),
-    defaultValues: {
-      serviceType:
-        (search.serviceType as CreateServiceRequestInput['serviceType']) ??
-        'cleaning',
+  const initialDraft = useMemo<CreateServiceRequestInput | null>(() => {
+    const hasAnyParam =
+      search.serviceType || search.date || search.time || search.notes
+    if (!hasAnyParam) return null
+    return {
+      serviceType: isServiceType(search.serviceType)
+        ? search.serviceType
+        : 'cleaning',
       date: search.date ?? '',
       time: search.time ?? '',
       notes: search.notes ?? '',
-    },
-  })
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: voice context is set once on mount
-  useEffect(() => {
-    setContext({
-      screen: 'new-request',
-      draftFormState: form.getValues(),
-    })
-    return () => setContext({})
-  }, [setContext])
+    }
+  }, [search.serviceType, search.date, search.time, search.notes])
 
   const shouldShowInstall = !install.isInstalled && !install.isDismissed
 
@@ -68,9 +119,16 @@ function NewRequestPage() {
     })
   }
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const exitWizard = () => {
+    void navigate({ to: '/client/requests' })
+  }
+
+  const handleComplete = async (values: CreateServiceRequestInput) => {
     setError(null)
-    if (!isOnline) return
+    if (!isOnline) {
+      setError("You're offline — reconnect to submit this request.")
+      return
+    }
     try {
       const id = await create({
         serviceType: values.serviceType,
@@ -86,7 +144,7 @@ function NewRequestPage() {
     } catch (err) {
       setError((err as Error).message)
     }
-  })
+  }
 
   const onInstallClose = () => {
     const id = pendingRequestId
@@ -95,123 +153,86 @@ function NewRequestPage() {
   }
 
   return (
-    <div className="px-6 py-10 lg:px-12">
-      <header>
-        <p className="font-semibold text-brand-300 text-xs uppercase tracking-[0.32em]">
-          Client · New request
-        </p>
-        <h1 className="mt-2 font-black text-4xl text-surface-text">
-          Tell us what you need
-        </h1>
-      </header>
-
-      <GlassCard className="mt-8 max-w-2xl">
-        <form onSubmit={onSubmit} className="grid gap-4">
-          <div>
-            <label
-              htmlFor="new-request-service-type"
-              className="mb-1 block text-surface-text-muted text-xs uppercase tracking-widest"
-            >
-              Service
-            </label>
-            <select
-              id="new-request-service-type"
-              className="glass-input w-full px-4 py-3 text-base text-surface-text outline-none"
-              {...form.register('serviceType')}
-            >
-              {SERVICE_TYPE_OPTIONS.map((opt) => (
-                <option
-                  key={opt.value}
-                  value={opt.value}
-                  className="bg-surface-1 text-surface-text"
-                >
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="new-request-date"
-                className="mb-1 block text-surface-text-muted text-xs uppercase tracking-widest"
-              >
-                Date
-              </label>
-              <GlassInput
-                id="new-request-date"
-                type="date"
-                required
-                {...form.register('date', { required: true })}
-              />
-              {form.formState.errors.date ? (
-                <p className="mt-1 text-status-progress text-xs">
-                  {form.formState.errors.date.message}
-                </p>
-              ) : null}
-            </div>
-            <div>
-              <label
-                htmlFor="new-request-time"
-                className="mb-1 block text-surface-text-muted text-xs uppercase tracking-widest"
-              >
-                Time
-              </label>
-              <GlassInput
-                id="new-request-time"
-                type="time"
-                required
-                {...form.register('time', { required: true })}
-              />
-              {form.formState.errors.time ? (
-                <p className="mt-1 text-status-progress text-xs">
-                  {form.formState.errors.time.message}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="new-request-notes"
-              className="mb-1 block text-surface-text-muted text-xs uppercase tracking-widest"
-            >
-              Notes
-            </label>
-            <textarea
-              id="new-request-notes"
-              className="glass-input min-h-[120px] w-full px-4 py-3 text-base text-surface-text outline-none placeholder:text-surface-text-muted"
-              placeholder="Anything we should know?"
-              {...form.register('notes')}
-            />
-          </div>
-
-          {error ? (
-            <p className="rounded-xl bg-status-progress/20 px-4 py-2 text-sm text-status-progress">
-              {error}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={form.formState.isSubmitting || !isOnline}
-            className="mt-2 rounded-2xl bg-brand-500 px-5 py-3 font-semibold text-base text-white hover:bg-brand-600 disabled:opacity-60"
-          >
-            {form.formState.isSubmitting ? 'Submitting…' : 'Submit request'}
-          </button>
-          {!isOnline ? (
-            <p className="text-sm text-surface-text-muted">
-              You're offline — reconnect to submit this request.
-            </p>
-          ) : null}
-        </form>
-      </GlassCard>
-
+    <WizardProvider
+      steps={steps}
+      defaultValues={defaultValues}
+      schema={CreateServiceRequestSchema}
+      onComplete={handleComplete}
+      initialDraft={initialDraft}
+      initialStepId={search.step}
+    >
+      <NewRequestVoiceSync />
+      <WizardStepUrlSync />
+      <WizardShell
+        eyebrow="Client · New request"
+        submitLabel="Submit request"
+        onExit={exitWizard}
+      />
+      {error ? (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-status-progress/20 px-4 py-2 text-sm text-status-progress">
+          {error}
+        </div>
+      ) : null}
       <InstallPromptModal
         open={pendingRequestId !== null}
         onClose={onInstallClose}
       />
-    </div>
+    </WizardProvider>
   )
+}
+
+function WizardStepUrlSync() {
+  const navigate = useNavigate()
+  const search = Route.useSearch()
+  const { stepDef, steps: wizardSteps, goToStep } = useWizard()
+  const lastWrittenStep = useRef<string | null>(null)
+
+  // URL → wizard. Triggered by browser back/forward or deep-link.
+  useEffect(() => {
+    const targetId = search.step
+    if (!targetId) return
+    if (targetId === stepDef.id) return
+    const idx = wizardSteps.findIndex((s) => s.id === targetId)
+    if (idx < 0) return
+    goToStep(idx)
+  }, [search.step, stepDef.id, wizardSteps, goToStep])
+
+  // Wizard → URL. Only writes when stepDef.id actually changes; never when
+  // search.step changes on its own (avoids fighting URL → wizard).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: search.step is read for parity-check only; including it would cause this effect to re-run on URL echoes and double-write
+  useEffect(() => {
+    if (lastWrittenStep.current === stepDef.id) return
+    lastWrittenStep.current = stepDef.id
+    if (search.step === stepDef.id) return
+    void navigate({
+      to: '/client/requests/new',
+      search: (prev) => ({
+        ...prev,
+        step: stepDef.id as WizardStepId,
+      }),
+      replace: !search.step,
+    })
+  }, [stepDef.id, navigate])
+
+  return null
+}
+
+function NewRequestVoiceSync() {
+  const { setContext } = useVoiceContext()
+  const { currentStep, stepDef, getValues } =
+    useWizard<CreateServiceRequestInput>()
+
+  useEffect(() => {
+    setContext({
+      screen: 'new-request',
+      draftFormState: {
+        ...getValues(),
+        _step: stepDef.id,
+        _stepIndex: currentStep,
+      },
+    })
+    return () => setContext({})
+  }, [setContext, currentStep, stepDef, getValues])
+
+  return null
 }
