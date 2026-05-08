@@ -1,5 +1,5 @@
 import { api } from '@service-ops/convex/api'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { GlassCard } from '@/components/glass'
@@ -14,17 +14,18 @@ export const Route = createFileRoute('/dashboard/profile')({
 function DashboardProfile() {
   const { user, signOut } = useAuth()
   const appUser = useQuery(api.users.currentAppUser)
+  const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
 
-  // No manual nav here — the layout's auth gate redirects to `/` once the
-  // session clears, which gives a single clean transition.
-  const onSignOut = async () => {
+  // The role layout no longer bounces to `/` on null user (it latches past
+  // the OAuth /get-session race), so signOut needs to navigate manually.
+  // Fire-and-forget the HTTP call — the cross-domain client's init() hook
+  // clears localStorage and atom-resets the session synchronously, so we
+  // can navigate immediately without waiting for the round-trip.
+  const onSignOut = () => {
     setBusy(true)
-    try {
-      await signOut()
-    } finally {
-      setBusy(false)
-    }
+    void signOut()
+    void navigate({ to: '/' })
   }
 
   return (

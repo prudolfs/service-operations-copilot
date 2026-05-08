@@ -2,6 +2,7 @@ import { api } from '@service-ops/convex/api'
 import { isManager, isWorker } from '@service-ops/shared'
 import { createFileRoute, Navigate, Outlet } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
+import { useRef } from 'react'
 import { InstallBanner } from '@/components/install/InstallBanner'
 import { OfflineBanner } from '@/components/offline-banner'
 import {
@@ -22,10 +23,22 @@ function DashboardLayout() {
   const { user, isLoading } = useAuth()
   const appUser = useQuery(api.users.currentAppUser)
 
+  // Latch "seen authenticated" once. The cross-domain client races two
+  // /get-session calls during the OAuth callback (initial mount fetch + the
+  // post-OTT signal-triggered fetch); if the stale `data: null` response
+  // lands last it overwrites the atom's user back to null *and* clears the
+  // freshly-set session_token from localStorage. Bouncing to `/` on that
+  // transient null causes a Welcome flash on top of the destination route.
+  // SignOut handlers navigate manually, so this latch only suppresses the
+  // race — real exits don't depend on the auth gate.
+  const wasAuthRef = useRef(false)
+  if (user) wasAuthRef.current = true
+
   if (isLoading) return null
-  // Send signed-out users to welcome (not /login) so the post-signOut layout
-  // re-render lands on the same destination as our manual nav — no flash.
-  if (!user) return <Navigate to="/" />
+  if (!user) {
+    if (wasAuthRef.current) return null
+    return <Navigate to="/" />
+  }
   if (appUser === undefined) return null
   if (appUser === null) return <Navigate to="/redirect" />
   if (!isWorker(appUser.role) && !isManager(appUser.role)) {

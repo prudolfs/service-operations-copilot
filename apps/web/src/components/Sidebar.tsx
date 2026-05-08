@@ -1,5 +1,5 @@
 import { api } from '@service-ops/convex/api'
-import { Link, useLocation } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useMutation } from 'convex/react'
 import {
   Briefcase,
@@ -107,12 +107,18 @@ export function Sidebar({
 
 function SignOutButton() {
   const { signOut } = useAuth()
+  const navigate = useNavigate()
   return (
     <button
       type="button"
       onClick={() => {
-        // Layout's auth gate redirects signed-out users to `/`.
+        // Fire-and-forget the HTTP /sign-out call. The cross-domain
+        // client's init() hook clears localStorage and atom-resets the
+        // session synchronously inside the fetch lifecycle, so React
+        // sees user=null right away — awaiting the round-trip just adds
+        // visible latency before navigation.
         void signOut()
+        void navigate({ to: '/' })
       }}
       className="mt-3 w-full rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 text-left text-sm text-surface-text-muted hover:bg-surface-2 hover:text-surface-text"
     >

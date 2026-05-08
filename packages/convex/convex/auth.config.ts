@@ -1,13 +1,13 @@
+import { getAuthConfigProvider } from '@convex-dev/better-auth/auth-config'
+
 /**
- * Convex's JWT verification config — points at our own deployment's HTTP URL,
- * which is where Better Auth signs tokens. The `convex` plugin in `auth.ts`
- * exposes the JWKS at `/.well-known/jwks.json` on `CONVEX_SITE_URL`.
+ * Convex JWT verification config. As of `@convex-dev/better-auth` 0.10 the
+ * Convex plugin signs tokens with RS256 and exposes a JWKS at
+ * `${CONVEX_SITE_URL}/api/auth/convex/jwks`. `getAuthConfigProvider()` builds
+ * the matching `customJwt` provider entry; the same value is passed back into
+ * `convex({ authConfig })` in `auth.ts` so the issuer / JWKS pair stays
+ * consistent on both sides.
  */
 export default {
-  providers: [
-    {
-      domain: process.env.CONVEX_SITE_URL,
-      applicationID: 'convex',
-    },
-  ],
+  providers: [getAuthConfigProvider()],
 }

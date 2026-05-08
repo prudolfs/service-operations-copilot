@@ -111,7 +111,11 @@ export const ensureAppUser = mutation({
 export const currentAppUser = query({
   args: {},
   handler: async (ctx): Promise<Doc<'users'> | null> => {
-    const authUser = await authComponent.getAuthUser(ctx)
+    // safeGetAuthUser returns undefined for unauthenticated callers; the
+    // throwing variant (`getAuthUser`) logs every signed-out caller as a
+    // Convex error, which spams the dev console after sign-out and on every
+    // unauthenticated mount of /redirect or /dashboard.
+    const authUser = await authComponent.safeGetAuthUser(ctx)
     if (!authUser) return null
     return findByAuthUserId(ctx, authUser._id)
   },

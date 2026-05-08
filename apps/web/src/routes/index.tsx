@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Navigate } from '@tanstack/react-router'
-import { useAuth } from '@/lib/useAuth'
+import { hasStoredAuthCookie, useAuth } from '@/lib/useAuth'
 
 export const Route = createFileRoute('/')({
   component: Welcome,
@@ -8,8 +8,16 @@ export const Route = createFileRoute('/')({
 function Welcome() {
   const { user, isLoading } = useAuth()
 
-  if (!isLoading && user) {
+  if (user) {
     return <Navigate to="/redirect" />
+  }
+
+  // Hold a blank frame only when a session cookie is present and we're still
+  // resolving — that's the cold-load "logged in but useSession hasn't
+  // returned yet" case. After signOut the cookie is already cleared, so we
+  // fall through to Welcome and stay there through the refetch.
+  if (isLoading && hasStoredAuthCookie()) {
+    return <div className="min-h-screen" />
   }
 
   return (

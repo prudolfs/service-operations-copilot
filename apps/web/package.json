@@ -12,7 +12,7 @@
     "icons": "bun run scripts/generate-icons.ts"
   },
   "dependencies": {
-    "@convex-dev/better-auth": "^0.8.6",
+    "@convex-dev/better-auth": "^0.12.2",
     "@hookform/resolvers": "^5.0.1",
     "@service-ops/convex": "workspace:*",
     "@service-ops/shared": "workspace:*",
@@ -21,7 +21,7 @@
     "@tanstack/react-router-ssr-query": "^1.131.7",
     "@tanstack/react-start": "^1.132.0",
     "@tanstack/router-plugin": "^1.132.0",
-    "better-auth": "1.3.8",
+    "better-auth": "1.6.9",
     "clsx": "^2.1.1",
     "convex": "^1.32.0",
     "lucide-react": "^0.561.0",

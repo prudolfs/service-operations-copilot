@@ -4,6 +4,7 @@ import { convex, crossDomain } from '@convex-dev/better-auth/plugins'
 import { betterAuth } from 'better-auth'
 import { components } from './_generated/api'
 import type { DataModel } from './_generated/dataModel'
+import authConfig from './auth.config'
 
 export const authComponent = createClient<DataModel>(components.betterAuth)
 
@@ -53,5 +54,14 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
         clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       },
     },
-    plugins: [expo(), convex(), crossDomain({ siteUrl: WEB_SITE_URL })],
+    plugins: [
+      expo(),
+      // 0.10+ requires `authConfig` so the plugin can resolve the matching
+      // `customJwt` provider. `jwksRotateOnTokenGenerationError` rolls the
+      // JWKS table from the legacy EdDSA key (0.8) to RS256 (0.10+) on the
+      // first failing token mint after the upgrade — drop the flag once prod
+      // has rotated and minted at least one RS256 key.
+      convex({ authConfig, jwksRotateOnTokenGenerationError: true }),
+      crossDomain({ siteUrl: WEB_SITE_URL }),
+    ],
   })
