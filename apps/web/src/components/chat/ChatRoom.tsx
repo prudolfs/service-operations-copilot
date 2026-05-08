@@ -1,8 +1,9 @@
 import { api } from '@service-ops/convex/api'
 import type { Doc, Id } from '@service-ops/convex/dataModel'
 import type { ReplyTone } from '@service-ops/shared'
+import { useRouter } from '@tanstack/react-router'
 import { useAction, useMutation, useQuery } from 'convex/react'
-import { Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Sparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StatusBadge } from '@/components/StatusBadge'
 import { useVoiceContext } from '@/components/voice/VoiceContext'
@@ -27,6 +28,7 @@ export function ChatRoom({
   chatRoomId: Id<'chatRooms'>
   initialDraft?: string
 }) {
+  const router = useRouter()
   const room = useQuery(api.chat.listForUser)?.find((r) => r._id === chatRoomId)
   const messages = useQuery(api.chat.getMessages, { chatRoomId })
   const me = useQuery(api.users.currentAppUser)
@@ -128,16 +130,26 @@ export function ChatRoom({
     // the layout. The composer reliably pins to the bottom and the message
     // list claims the space between header and composer.
     <div className="fixed inset-0 z-10 flex flex-col bg-surface-0 md:left-64">
-      <header className="flex items-center gap-4 border-surface-3 border-b bg-surface-1 px-6 py-4">
-        <div className="flex-1">
-          <p className="font-semibold text-base text-surface-text">
-            {room ? formatServiceType(room.request.serviceType) : 'Chat'}
-          </p>
-          <p className="text-sm text-surface-text-muted">
-            {room ? otherName : 'Loading…'}
-          </p>
+      <header className="border-surface-3 border-b bg-surface-1 pt-safe">
+        <div className="flex items-center gap-3 px-4 py-4 md:px-6">
+          <button
+            type="button"
+            onClick={() => router.history.back()}
+            className="-ml-1 flex h-9 w-9 items-center justify-center rounded-full text-surface-text-muted hover:bg-surface-2 hover:text-surface-text md:hidden"
+            aria-label="Back"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-base text-surface-text">
+              {room ? formatServiceType(room.request.serviceType) : 'Chat'}
+            </p>
+            <p className="truncate text-sm text-surface-text-muted">
+              {room ? otherName : 'Loading…'}
+            </p>
+          </div>
+          {room ? <StatusBadge status={room.request.status} /> : null}
         </div>
-        {room ? <StatusBadge status={room.request.status} /> : null}
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
@@ -289,7 +301,7 @@ export function ChatRoom({
           e.preventDefault()
           void onSend()
         }}
-        className="flex items-end gap-2 border-surface-3 border-t bg-surface-1 px-6 py-3"
+        className="flex items-end gap-2 border-surface-3 border-t bg-surface-1 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:px-6"
       >
         <button
           type="button"

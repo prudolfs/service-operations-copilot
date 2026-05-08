@@ -38,7 +38,7 @@ function DashboardLayout() {
 
   return (
     <VoiceProvider>
-      <div className="min-h-screen bg-surface-0 md:pl-64">
+      <div className="min-h-dvh bg-surface-0 md:pl-64">
         <Sidebar items={nav} eyebrow={eyebrow} />
         <main className="pt-safe pb-24 md:pb-0">
           <OfflineBanner />

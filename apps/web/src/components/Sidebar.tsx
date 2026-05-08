@@ -10,6 +10,7 @@ import {
   UserCircle,
   Users,
 } from 'lucide-react'
+import { useVoiceContext } from '@/components/voice/VoiceContext'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/lib/useAuth'
 
@@ -126,8 +127,13 @@ function SignOutButton() {
  */
 export function MobileTabBar({ items }: { items: NavItem[] }) {
   const location = useLocation()
+  const { context } = useVoiceContext()
+  // Chat detail is a full-screen takeover (`fixed inset-0`); the tab bar
+  // covered the composer at z-30. Hide it there — the chat header has its
+  // own back button for navigation on mobile.
+  if (context.screen === 'chat') return null
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-surface-3 border-t bg-surface-1/95 px-2 pb-safe backdrop-blur md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-surface-3 border-t bg-surface-1 px-2 pb-safe md:hidden">
       {items.map((item) => {
         const active =
           item.to === location.pathname ||

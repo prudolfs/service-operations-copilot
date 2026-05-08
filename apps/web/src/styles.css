@@ -23,4 +23,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-surface-0);
   color: var(--color-surface-text);
+  /* iOS WebKit displaces `position: fixed` elements during rubber-band
+   * overscroll. Without this, the bottom tab bar visibly drifts up when a
+   * short loading state turns into scrollable content. */
+  overscroll-behavior: none;
 }
