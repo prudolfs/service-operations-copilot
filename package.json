@@ -19,7 +19,8 @@
     "format": "biome format --write ./apps ./packages",
     "lint": "biome lint ./apps ./packages",
     "typecheck": "bun run --filter '*' typecheck",
-    "test": "bun run --filter '*' test"
+    "test": "bun run --filter '*' test",
+    "readme:header": "scripts/build-readme-header.sh slides.pdf docs/readme-header.gif"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",
